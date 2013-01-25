@@ -112,6 +112,7 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
     Handler mHandler = new Handler();
     SettingsObserver mSettingsObserver;
     ActivityManager mAm;
+    ActivityManager.MemoryInfo mMemInfo;
 
     MemInfoReader mMemInfoReader = new MemInfoReader();
 
@@ -290,6 +291,7 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
 
         mAm = (ActivityManager)
                 mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        mMemInfo = new ActivityManager.MemoryInfo();
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RecentsPanelView,
                 defStyle, 0);
 
@@ -890,9 +892,8 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             if (!ramBarEnabled)
                 return;
 
-            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
-            mAm.getMemoryInfo(memInfo);
-            long secServerMem = memInfo.secondaryServerThreshold;
+            mAm.getMemoryInfo(mMemInfo);
+            long secServerMem = mMemInfo.secondaryServerThreshold;
             mMemInfoReader.readMemInfo();
             long availMem = mMemInfoReader.getFreeSize() + mMemInfoReader.getCachedSize() -
                     secServerMem;
