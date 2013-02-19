@@ -152,7 +152,7 @@ public class SearchPanelView extends FrameLayout implements
     }
 
     @Override
-    public void onAttachedToWindow() {
+    protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mSettingsObserver.observe();
         updateSettings();
