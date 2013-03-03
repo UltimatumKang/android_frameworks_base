@@ -2771,6 +2771,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         }
                     }
                 }
+                if (canceled)
+                    return -1;
             }
         } else if (keyCode == KeyEvent.KEYCODE_SEARCH) {
             if (down) {
@@ -2898,6 +2900,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             return -1;
                         }
                     }
+                    if (canceled)
+                        return -1;
                 }
             }
         }
