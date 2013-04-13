@@ -29,12 +29,15 @@ import com.android.systemui.recent.RecentTasksLoader;
 import com.android.systemui.recent.RecentsActivity;
 import com.android.systemui.recent.TaskDescription;
 import com.android.systemui.statusbar.halo.Halo;
+import com.android.systemui.statusbar.phone.QuickSettingsContainerView;
 import com.android.systemui.statusbar.phone.Ticker;
 import com.android.systemui.statusbar.pie.PieLayout;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.policy.PieController;
 import com.android.systemui.statusbar.policy.PieController.Position;
 import com.android.systemui.statusbar.tablet.StatusBarPanel;
+import com.android.systemui.statusbar.view.PieStatusPanel;
+import com.android.systemui.statusbar.view.PieExpandPanel;
 import com.android.systemui.statusbar.WidgetView;
 import com.android.systemui.navbar.AppWindow;
 
@@ -132,6 +135,16 @@ public abstract class BaseStatusBar extends SystemUI implements
     private int mPieTriggerGravityLeftRight;
 
     private boolean mPieImeIsShowing = false;
+
+    // Pie controls
+    public PieControlPanel mPieControlPanel;
+    public View mPieControlsTrigger;
+    public PieExpandPanel mContainer;
+    public View[] mPieDummyTrigger = new View[4];
+    int mIndex;
+
+    // UI-specific methods
+    public int mSystemUiLayout = ExtendedPropertiesUtils.getActualProperty("com.android.systemui.layout");
 
     // Halo
     protected Halo mHalo = null;
@@ -280,9 +293,6 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     };
 
-    // UI-specific methods
-    public int mSystemUiLayout = ExtendedPropertiesUtils.getActualProperty("com.android.systemui.layout");
-
     /**
      * Create all windows necessary for the status bar (including navigation, overlay panels, etc)
      * and add them to the window manager.
@@ -301,6 +311,18 @@ public abstract class BaseStatusBar extends SystemUI implements
         return mTicker;
     }
 
+    public void collapse() {
+    }
+
+    public QuickSettingsContainerView getQuickSettingsPanel() {
+        // This method should be overriden
+        return null;
+    }
+
+    public NotificationRowLayout getNotificationRowLayout() {
+        return mPile;
+    }
+
     public IStatusBarService getStatusBarService() {
         return mBarService;
     }
@@ -311,6 +333,33 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     public boolean isDeviceProvisioned() {
         return mDeviceProvisioned;
+    }
+
+    private final class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_CONTROLS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_MODE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_GRAVITY), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_TRIGGER), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.EXPANDED_DESKTOP_STATE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.EXPANDED_DESKTOP_STYLE), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updatePieControls();
+        }
     }
 
     private ContentObserver mProvisioningObserver = new ContentObserver(new Handler()) {
@@ -365,6 +414,55 @@ public abstract class BaseStatusBar extends SystemUI implements
             return handled;
         }
     };
+
+    private class PieControlsTouchListener implements View.OnTouchListener {
+        private int orient;
+        private boolean actionDown = false;
+        private boolean centerPie = true;
+        private float initialX = 0;
+        private float initialY = 0;
+        int index;
+
+        public PieControlsTouchListener() {
+            orient = mPieControlPanel.getOrientation();
+        }
+
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            final int action = event.getAction();
+
+            if (!mPieControlPanel.isShowing() && ! mPieControlPanel.getKeyguardStatus()) {
+                switch(action) {
+                    case MotionEvent.ACTION_DOWN:
+                        centerPie = Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_CENTER, 1) == 1;
+                        actionDown = true;
+                        initialX = event.getX();
+                        initialY = event.getY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (actionDown != true) break;
+
+                        float deltaX = Math.abs(event.getX() - initialX);
+                        float deltaY = Math.abs(event.getY() - initialY);
+                        float distance = orient == Gravity.BOTTOM ||
+                                orient == Gravity.TOP ? deltaY : deltaX;
+                        // Swipe up
+                        if (distance > 10) {
+                            orient = mPieControlPanel.getOrientation();
+                            mPieControlPanel.show(centerPie ? -1 : (int)(orient == Gravity.BOTTOM ||
+                                orient == Gravity.TOP ? initialX : initialY));
+                            event.setAction(MotionEvent.ACTION_DOWN);
+                            mPieControlPanel.onTouchEvent(event);
+                            actionDown = false;
+                        }
+                }
+            } else {
+                return mPieControlPanel.onTouchEvent(event);
+            }
+            return false;
+        }
+    }
 
     public void start() {
         mWindowManager = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
@@ -465,6 +563,16 @@ public abstract class BaseStatusBar extends SystemUI implements
             }
         }, filter);
 
+        // Listen for PIE gravity
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.PIE_GRAVITY), false, new ContentObserver(new Handler()) {
+            @Override
+            public void onChange(boolean selfChange) {
+                if (Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.PIE_STICK, 1) == 0) {
+                updatePieControls();
+            }}});
+
         // Listen for HALO enabled switch
         mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.HALO_ENABLED), false, new ContentObserver(new Handler()) {
@@ -538,6 +646,146 @@ public abstract class BaseStatusBar extends SystemUI implements
                 mHalo = null;
             }
         }
+
+        attachPie();
+
+        SettingsObserver settingsObserver = new SettingsObserver(new Handler());
+        settingsObserver.observe();
+    }
+
+    private boolean showPie() {
+        int papie = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_CONTROLS, 0);
+        boolean expanded = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1;
+
+        return (papie == 1 && expanded) || papie == 2;
+    }
+
+    public void updatePieControls() {
+        if (mPieControlsTrigger != null) mWindowManager.removeView(mPieControlsTrigger);
+        if (mPieControlPanel != null)  mWindowManager.removeView(mPieControlPanel);
+
+        for (int i = 0; i < 4; i++) {
+            if (mPieDummyTrigger[i] != null)  mWindowManager.removeView(mPieDummyTrigger[i]);
+        }
+
+        attachPie();
+    }
+
+    private void attachPie() {
+        if (showPie()) {
+            if (mContainer == null) {
+                // Add panel window, one to be used by all pies that is
+                LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                mContainer = (PieExpandPanel)inflater.inflate(R.layout.pie_expanded_panel, null);
+                mContainer.init(mPile, mContainer.findViewById(R.id.content_scroll));
+                mWindowManager.addView(mContainer, PieStatusPanel.getFlipPanelLayoutParams());
+            }
+
+            // Add pie (s), want some slice?
+            int gravity = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.PIE_GRAVITY, 3);
+
+            switch(gravity) {
+                case 0:
+                    addPieInLocation(Gravity.LEFT);
+                    break;
+                case 1:
+                    addPieInLocation(Gravity.TOP);
+                    break;
+                case 2:
+                    addPieInLocation(Gravity.RIGHT);
+                    break;
+                default:
+                    addPieInLocation(Gravity.BOTTOM);
+                    break;
+            }
+
+
+        } else {
+            mPieControlsTrigger = null;
+            mPieControlPanel = null;
+            for (int i = 0; i < 4; i++) {
+                mPieDummyTrigger[i] = null;
+            }
+        }
+    }
+
+    private void addPieInLocation(int gravity) {
+        // Quick navigation bar panel
+        mPieControlPanel = (PieControlPanel) View.inflate(mContext,
+                R.layout.pie_control_panel, null);
+
+        // Quick navigation bar trigger area
+        mPieControlsTrigger = new View(mContext);
+        mPieControlsTrigger.setOnTouchListener(new PieControlsTouchListener());
+        mWindowManager.addView(mPieControlsTrigger, getPieTriggerLayoutParams(mContext, gravity));
+
+        // Overload screen with views that literally do nothing, thank you Google
+        int dummyGravity[] = {Gravity.LEFT, Gravity.TOP, Gravity.RIGHT, Gravity.BOTTOM};
+        for (int i = 0; i < 4; i++) {
+            mPieDummyTrigger[i] = new View(mContext);
+            mWindowManager.addView(mPieDummyTrigger[i], getDummyTriggerLayoutParams(mContext, dummyGravity[i]));
+        }
+
+        // Init Panel
+        mPieControlPanel.init(mHandler, this, mPieControlsTrigger, gravity);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                PixelFormat.TRANSLUCENT);
+        lp.setTitle("PieControlPanel");
+        lp.windowAnimations = android.R.style.Animation;
+
+        mWindowManager.addView(mPieControlPanel, lp);
+    }
+
+    public static WindowManager.LayoutParams getPieTriggerLayoutParams(Context context, int gravity) {
+        final Resources res = context.getResources();
+        final float mPieSize = Settings.System.getFloat(context.getContentResolver(),
+                Settings.System.PIE_TRIGGER, 1f);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+              (gravity == Gravity.TOP || gravity == Gravity.BOTTOM ?
+                    ViewGroup.LayoutParams.MATCH_PARENT : (int)(res.getDimensionPixelSize(R.dimen.pie_trigger_height)*mPieSize)),
+              (gravity == Gravity.LEFT || gravity == Gravity.RIGHT ?
+                    ViewGroup.LayoutParams.MATCH_PARENT : (int)(res.getDimensionPixelSize(R.dimen.pie_trigger_height)*mPieSize)),
+              WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL,
+                      WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                      | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                      | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH
+                      | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+              PixelFormat.TRANSLUCENT);
+        lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING;
+        lp.gravity = gravity;
+        return lp;
+    }
+
+    public static WindowManager.LayoutParams getDummyTriggerLayoutParams(Context context, int gravity) {
+        final Resources res = context.getResources();
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+              (gravity == Gravity.TOP || gravity == Gravity.BOTTOM ?
+                    ViewGroup.LayoutParams.MATCH_PARENT : 1),
+              (gravity == Gravity.LEFT || gravity == Gravity.RIGHT ?
+                    ViewGroup.LayoutParams.MATCH_PARENT : 1),
+              WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL,
+                      WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                      | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                      | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                      | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH
+                      | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+              PixelFormat.TRANSLUCENT);
+        lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING;
+        lp.gravity = gravity;
+        return lp;
     }
 
     public void userSwitched(int newUserId) {
@@ -650,6 +898,14 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     public void dismissIntruder() {
         // pass
+    }
+
+    @Override
+    public void animateCollapsePanels(int flags) {
+        if (mPieControlPanel != null
+                && flags == CommandQueue.FLAG_EXCLUDE_NONE) {
+            mPieControlPanel.animateCollapsePanels();
+        }
     }
 
     @Override
@@ -1560,8 +1816,9 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
+        if (mPieControlPanel != null) mPieControlPanel.bumpConfiguration();
         if (DEBUG) Slog.d(TAG, "Configuration changed! Update pie triggers");
-        attachPie();
+        attachSPie();
     }
 
     private final class PieSettingsObserver extends ContentObserver {
@@ -1572,19 +1829,19 @@ public abstract class BaseStatusBar extends SystemUI implements
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_CONTROLS), false, this);
+                    Settings.System.SPIE_CONTROLS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_GRAVITY), false, this);
+                    Settings.System.SPIE_GRAVITY), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_TRIGGER_GRAVITY_LEFT_RIGHT), false, this);
+                    Settings.System.SPIE_TRIGGER_GRAVITY_LEFT_RIGHT), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_TRIGGER_THICKNESS), false, this);
+                    Settings.System.SPIE_TRIGGER_THICKNESS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_TRIGGER_HEIGHT), false, this);
+                    Settings.System.SPIE_TRIGGER_HEIGHT), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_TRIGGER_SHOW), false, this);
+                    Settings.System.SPIE_TRIGGER_SHOW), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_SOFTKEYBOARD_IS_SHOWING), false, this);
+                    Settings.System.SPIE_SOFTKEYBOARD_IS_SHOWING), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.CURRENT_UI_MODE), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -1608,34 +1865,34 @@ public abstract class BaseStatusBar extends SystemUI implements
         @Override
         public void onChange(boolean selfChange) {
             mPieTriggerSlots = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.PIE_GRAVITY, Position.LEFT.FLAG);
+                    Settings.System.SPIE_GRAVITY, Position.LEFT.FLAG);
             mPieShowTrigger = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.PIE_TRIGGER_SHOW, 0) == 1;
+                    Settings.System.SPIE_TRIGGER_SHOW, 0) == 1;
             mPieTriggerThickness = Settings.System.getFloat(mContext.getContentResolver(),
-                    Settings.System.PIE_TRIGGER_THICKNESS,
-                    mContext.getResources().getDimension(R.dimen.pie_trigger_thickness));
+                    Settings.System.SPIE_TRIGGER_THICKNESS,
+                    mContext.getResources().getDimension(R.dimen.pies_trigger_thickness));
             mPieTriggerHeight = Settings.System.getFloat(mContext.getContentResolver(),
-                    Settings.System.PIE_TRIGGER_HEIGHT,
+                    Settings.System.SPIE_TRIGGER_HEIGHT,
                     0.8f);
             mPieTriggerGravityLeftRight = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.PIE_TRIGGER_GRAVITY_LEFT_RIGHT,
+                    Settings.System.SPIE_TRIGGER_GRAVITY_LEFT_RIGHT,
                     Gravity.CENTER_VERTICAL);
             mPieImeIsShowing = Settings.System.getFloat(mContext.getContentResolver(),
-                    Settings.System.PIE_SOFTKEYBOARD_IS_SHOWING, 0) == 1
+                    Settings.System.SPIE_SOFTKEYBOARD_IS_SHOWING, 0) == 1
                     && Settings.System.getFloat(mContext.getContentResolver(),
-                    Settings.System.PIE_ADJUST_TRIGGER_FOR_IME, 1) == 1;
-            attachPie();
+                    Settings.System.SPIE_ADJUST_TRIGGER_FOR_IME, 1) == 1;
+            attachSPie();
         }
     }
 
     private boolean isPieEnabled() {
-        int pie = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_CONTROLS, 0);
+        int slimpie = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SPIE_CONTROLS, 0);
 
-        return pie == 1;
+        return slimpie == 1;
     }
 
-    private void attachPie() {
+    private void attachSPie() {
         if (isPieEnabled()) {
             // Create our container, if it does not exist already
             if (mPieContainer == null) {

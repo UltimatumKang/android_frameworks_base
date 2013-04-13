@@ -1267,6 +1267,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    private void closeApplication(String packageName) {
+        try {
+            ActivityManagerNative.getDefault().killApplicationProcess(
+                    packageName, AppGlobals.getPackageManager().getPackageUid(
+                    packageName, UserHandle.myUserId()));
+        } catch (RemoteException e) {
+            // Good luck next time!
+        }
+    }
+
     public void setInitialDisplaySize(Display display, int width, int height, int density) {
         mDisplay = display;
 
@@ -1309,16 +1319,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mHdmiRotation = mLandscapeRotation;
         }
         mHdmiRotationLock = SystemProperties.getBoolean("persist.demo.hdmirotationlock", true);
-    }
-
-    private void closeApplication(String packageName) {
-        try {
-            ActivityManagerNative.getDefault().killApplicationProcess(
-                    packageName, AppGlobals.getPackageManager().getPackageUid(
-                    packageName, UserHandle.myUserId()));
-        } catch (RemoteException e) {
-            // Good luck next time!
-        }
     }
    
     private void update(boolean updateUi) {

@@ -245,9 +245,9 @@ public class SbBatteryController extends LinearLayout {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ICON_COLOR_STYLE), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_DISABLE_STATUSBAR_INFO), false, this);
+                    Settings.System.SPIE_DISABLE_STATUSBAR_INFO), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_CONTROLS), false, this);
+                    Settings.System.SPIE_CONTROLS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.EXPANDED_DESKTOP_STATE), false, this);
         }
@@ -269,11 +269,11 @@ public class SbBatteryController extends LinearLayout {
                 Settings.System.ICON_COLOR_STYLE, 0);
 
         boolean disableStatusBarInfo = Settings.System.getInt(cr,
-                Settings.System.PIE_DISABLE_STATUSBAR_INFO, 0) == 1;
+                Settings.System.SPIE_DISABLE_STATUSBAR_INFO, 0) == 1;
         if (disableStatusBarInfo) {
             // call only the settings if statusbar info is really hidden
             int pieMode = Settings.System.getInt(cr,
-                    Settings.System.PIE_CONTROLS, 0);
+                    Settings.System.SPIE_CONTROLS, 0);
             boolean expandedDesktopState = Settings.System.getInt(cr,
                     Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1;
 

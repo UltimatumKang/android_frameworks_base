@@ -200,6 +200,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     KeyEvent mSpaceBarKeyEvent = null;
 
     View mCompatibilityHelpDialog = null;
+    public View[] mPieDummyTrigger = new View[4];
 
     // for disabling the status bar
     int mDisabled = 0;
@@ -490,6 +491,11 @@ public class TabletStatusBar extends BaseStatusBar implements
     @Override
     public View getStatusBarView() {
         return mStatusBarView;
+    }
+
+    @Override
+    public QuickSettingsContainerView getQuickSettingsPanel() {
+        return mNotificationPanel.mSettingsContainer;
     }
 
     protected View makeStatusBarView() {
@@ -1227,6 +1233,9 @@ public class TabletStatusBar extends BaseStatusBar implements
 
     public void topAppWindowChanged(boolean showMenu) {
         mTransparencyManager.update();
+
+        if (mPieControlPanel != null)
+            mPieControlPanel.setMenu(showMenu);
 
         if (DEBUG) {
             Slog.d(TAG, (showMenu?"showing":"hiding") + " the MENU button");
