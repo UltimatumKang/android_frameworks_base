@@ -300,14 +300,12 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
         mRecentsActivity = (RecentsActivity) context;
         a.recycle();
         mSettingsObserver = new SettingsObserver(mHandler);
-        updateSettings();
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mSettingsObserver.observe();
-        updateSettings();
+        mSettingsObserver.observe(); // observe will call updateSettings()
     }
 
     @Override
@@ -533,9 +531,17 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
                 ((BitmapDrawable) mRecentsScrim.getBackground()).setTileModeY(TileMode.REPEAT);
             }
         }
-        updateSettings();
 
-        mHandler.post(updateRamBarTask);
+        mRamUsageBar = (LinearColorBar) findViewById(R.id.ram_usage_bar);
+        mForegroundProcessText = (TextView) findViewById(R.id.foregroundText);
+        mBackgroundProcessText = (TextView) findViewById(R.id.backgroundText);
+        mRecentsKillAllButton = (Button) findViewById(R.id.recents_kill_all_button);
+        mRecentsKillAllButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                killAllRecentApps();
+            }
+        });
     }
 
     public void setMinSwipeAlpha(float minAlpha) {
@@ -951,20 +957,8 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
         ramBarEnabled = Settings.System.getBoolean(mContext.getContentResolver(),
                 Settings.System.RAM_USAGE_BAR, false);
 
-        mRamUsageBar = (LinearColorBar) findViewById(R.id.ram_usage_bar);
-        if (ramBarEnabled) {
-            if (mRamUsageBar != null) {
-                mRamUsageBar.setVisibility(View.VISIBLE);
-                mForegroundProcessText = (TextView) findViewById(R.id.foregroundText);
-                mBackgroundProcessText = (TextView) findViewById(R.id.backgroundText);
-            } else {
-                mForegroundProcessText = null;
-                mBackgroundProcessText = null;
-            }
-        } else {
-            if (mRamUsageBar != null) {
-                mRamUsageBar.setVisibility(View.GONE);
-            }
+        if (mRamUsageBar != null) {
+            mRamUsageBar.setVisibility(ramBarEnabled ? View.VISIBLE : View.GONE);
         }
     }
 }
