@@ -4449,13 +4449,6 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
         return selectText(x, y);
     }
 
-    public void clearSelection() {
-        selectionDone();
-        if (mWebViewCore != null) {
-            mWebViewCore.sendMessage(EventHub.SELECT_TEXT, null);
-        }
-    }
-
     /**
      * Select the word at the indicated content coordinates.
      */
@@ -4473,7 +4466,7 @@ public final class WebViewClassic implements WebViewProvider, WebViewProvider.Sc
     public void onConfigurationChanged(Configuration newConfig) {
         mCachedOverlappingActionModeHeight = -1;
         if (mSelectingText && mOrientation != newConfig.orientation) {
-            clearSelection();
+            selectionDone();
         }
         mOrientation = newConfig.orientation;
         if (mWebViewCore != null && !mBlockWebkitViewMessages) {
