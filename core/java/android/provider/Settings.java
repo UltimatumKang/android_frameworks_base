@@ -4395,6 +4395,14 @@ public final class Settings {
         public static final String HALO_PAUSE = "halo_pause";
 
         /**
+         * Peek at stausbar when it is hidden by swiping down from top
+         * end of the screen
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_PEEK = "statusbar_peek";
+
+        /**
          * Whether Status Bar is currently hidden or not for notification
          * toggle notification shade
          *
