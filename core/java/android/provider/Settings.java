@@ -4361,35 +4361,7 @@ public final class Settings {
          * HALO enabled, should default to 0 (HALO is disabled)
          * @hide
          */
-<<<<<<< HEAD
         public static final String HALO_ENABLED = "halo_enabled";
-=======
-        public static final String HARDWARE_KEY_REBINDING = "hardware_key_rebinding";
-
-         /**
-          * Action to perform when the home key pressed. (Default is 1)
-          * 0 - Nothing
-          * 1 - Home
-          * 2 - Back
-          * 3 - Menu
-          * 4 - App-switch
-          * 5 - Search
-          * 6 - Voice Search
-          * 7 - In-App Search
-          * 8 - Power Off
-          * 9 - Notification shade toggle
-          * 10 - Expanded desktop toggle
-          * 11 - Kill App
-          * 12 - Last App
-          * 13 - Custom App
-          * 14 - Widget viewpager
-          * 15 - QuickSettings shade toggle
-          * 16 - Camera button
-          * @hide
-          */
-
-         public static final String KEY_HOME_ACTION = "key_home_action";
->>>>>>> 8d73f84... Camera button rebinding and lockscreen action additions (1/2)
 
         /*
          * HALO, should default to 0 (no, do not show)
@@ -4926,6 +4898,12 @@ public final class Settings {
          * @hide
          */
         public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
+
+        /**
+         * Whether to wake the screen with the home key, the value is boolean.
+         * @hide
+         */
+        public static final String HOME_WAKE_SCREEN = "home_wake_screen";
 
         /**
          * Whether to enable custom rebindings of the actions performed on
