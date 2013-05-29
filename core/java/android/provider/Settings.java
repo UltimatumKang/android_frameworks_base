@@ -1998,6 +1998,12 @@ public final class Settings {
         public static final String PIE_SIZE = "pie_size";
 
         /**
+         * Pie empty angle, should default to 0
+         * @hide
+         */
+        public static final String PIE_ANGLE = "pie_angle";
+
+        /**
          * @hide
          */
         public static final String PIE_ENABLE_COLOR = "pie_enable_color";
