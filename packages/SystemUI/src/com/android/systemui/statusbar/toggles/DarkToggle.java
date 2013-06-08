@@ -1,4 +1,3 @@
-
 package com.android.systemui.statusbar.toggles;
 
 import android.content.ContentResolver;
@@ -7,7 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.os.Handler;
-import android.provider.Settings;;
+import android.provider.Settings;
 import android.view.View;
 
 import com.android.systemui.R;
