@@ -2532,6 +2532,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         if (mPieControlPanel != null)
             mPieControlPanel.setMenu(showMenu);
+        if (mPieControlsTrigger != null)
+            mPieControlsTrigger.setVisibility(!mPieControlPanel.getKeyguardStatus() ? View.VISIBLE : View.GONE);
+
         if (DEBUG) {
             Slog.d(TAG, (showMenu?"showing":"hiding") + " the MENU button");
         }
