@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 ParanoidAndroid Project
+ * Copyright (C) 2010 MoKee OpenSource Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.systemui.statusbar.view;
+package com.android.systemui.statusbar.pieview;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -36,7 +36,9 @@ import android.graphics.drawable.Drawable;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Animation;
 import android.view.animation.AlphaAnimation;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,6 +71,7 @@ public class PieStatusPanel {
     private ScrollView mScrollView;
     private View mClearButton;
     private View mContentFrame;
+    private View mHaloButton;
     private QuickSettingsContainerView mQS;
     private NotificationRowLayout mNotificationPanel;
     private PieControlPanel mPanel;
@@ -77,6 +80,8 @@ public class PieStatusPanel {
     private Handler mHandler = new Handler();
     private NotificationData mNotificationData;
     private Runnable mPostCollapseCleanup = null;
+
+    private boolean mHaloActive;
 
     private int mCurrentViewState = -1;
     private int mFlipViewState = -1;
@@ -104,8 +109,40 @@ public class PieStatusPanel {
         mClearButton = (ImageView) mPanel.getBar().mContainer.findViewById(R.id.clear_all_button);
         mClearButton.setOnClickListener(mClearButtonListener);
 
+        mHaloButton = (ImageView) mPanel.getBar().mContainer.findViewById(R.id.halo_button);
+        if (mHaloButton != null) {
+            mHaloButton.setOnClickListener(mHaloButtonListener);
+        }
+
+        // Listen for HALO state for PIE
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.HALO_ACTIVE), false, new ContentObserver(new Handler()) {
+            @Override
+            public void onChange(boolean selfChange) {
+                showHaloButton(true);
+            }});
 
         mPanel.getBar().mContainer.setVisibility(View.GONE);
+    }
+
+    private View.OnClickListener mHaloButtonListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            // Activate HALO
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.HALO_ACTIVE, 1);
+        }
+    };
+
+    protected void showHaloButton(boolean show) {
+        if (mHaloButton != null) {
+            if(show) {
+                mHaloActive = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.HALO_ACTIVE, 0) == 1;
+                mHaloButton.setVisibility(!mHaloActive ? View.VISIBLE : View.GONE);
+            } else {
+                mHaloButton.setVisibility(View.GONE);
+            }
+        }
     }
 
     class ViewOnTouchListener implements OnTouchListener {
@@ -137,7 +174,7 @@ public class PieStatusPanel {
                         break;
                 }
                 return false;
-            }
+            }                  
     }
 
     private View.OnClickListener mClearButtonListener = new View.OnClickListener() {
@@ -178,7 +215,7 @@ public class PieStatusPanel {
                             public void run() {
                                 try {
                                     mNotificationPanel.setViewRemoval(true);
-                                    mPanel.getBar().getStatusBarService().onClearAllNotifications();
+                                    mPanel.getBar().getService().onClearAllNotifications();
                                 } catch (Exception ex) { }
                             }
                         };
@@ -260,12 +297,17 @@ public class PieStatusPanel {
 
     public void showTilesPanel() {
         showPanel(mQS);
-        ShowClearAll(true);
+        ShowClearAll(false);
+        showHaloButton(false);
     }
 
     public void showNotificationsPanel() {
         showPanel(mNotificationPanel);
-        ShowClearAll(false);
+        //check show ClearAll Button
+        boolean any = mNotificationData.size() > 0;
+        boolean clearable = any && mNotificationData.hasClearableItems();
+        ShowClearAll(clearable);
+        showHaloButton(true);
     }
 
     public void hideTilesPanel() {
@@ -323,8 +365,8 @@ public class PieStatusPanel {
     }
 
     private void ShowClearAll(boolean show){
-        mClearButton.setAlpha(show ? 0.0f : 1.0f);
-        mClearButton.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+        mClearButton.setAlpha(show ? 1.0f : 0.0f);
+        mClearButton.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     public static WindowManager.LayoutParams getFlipPanelLayoutParams() {
