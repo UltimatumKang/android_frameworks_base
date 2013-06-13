@@ -36,16 +36,16 @@ class TelephonyIcons {
     };
 
     static final int[][] TELEPHONY_SIGNAL_STRENGTH_ALT = {
-        { R.drawable.stat_sys_signal_0_alt,
-          R.drawable.stat_sys_signal_1_alt,
-          R.drawable.stat_sys_signal_2_alt,
-          R.drawable.stat_sys_signal_3_alt,
-          R.drawable.stat_sys_signal_4_alt },
-        { R.drawable.stat_sys_signal_0_fully_alt,
-          R.drawable.stat_sys_signal_1_fully_alt,
-          R.drawable.stat_sys_signal_2_fully_alt,
-          R.drawable.stat_sys_signal_3_fully_alt,
-          R.drawable.stat_sys_signal_4_fully_alt }
+        { R.drawable.stat_sys_signal_0,
+          R.drawable.stat_sys_signal_1,
+          R.drawable.stat_sys_signal_2,
+          R.drawable.stat_sys_signal_3,
+          R.drawable.stat_sys_signal_4 },
+        { R.drawable.stat_sys_signal_0_fully,
+          R.drawable.stat_sys_signal_1_fully,
+          R.drawable.stat_sys_signal_2_fully,
+          R.drawable.stat_sys_signal_3_fully,
+          R.drawable.stat_sys_signal_4_fully }
     };
 
     static final int[][] QS_TELEPHONY_SIGNAL_STRENGTH = {
@@ -75,16 +75,16 @@ class TelephonyIcons {
     };
 
     static final int[][] TELEPHONY_SIGNAL_STRENGTH_ROAMING_ALT = {
-        { R.drawable.stat_sys_signal_0_alt,
-          R.drawable.stat_sys_signal_1_alt,
-          R.drawable.stat_sys_signal_2_alt,
-          R.drawable.stat_sys_signal_3_alt,
-          R.drawable.stat_sys_signal_4_alt },
-        { R.drawable.stat_sys_signal_0_fully_alt,
-          R.drawable.stat_sys_signal_1_fully_alt,
-          R.drawable.stat_sys_signal_2_fully_alt,
-          R.drawable.stat_sys_signal_3_fully_alt,
-          R.drawable.stat_sys_signal_4_fully_alt }
+        { R.drawable.stat_sys_signal_0,
+          R.drawable.stat_sys_signal_1,
+          R.drawable.stat_sys_signal_2,
+          R.drawable.stat_sys_signal_3,
+          R.drawable.stat_sys_signal_4 },
+        { R.drawable.stat_sys_signal_0_fully,
+          R.drawable.stat_sys_signal_1_fully,
+          R.drawable.stat_sys_signal_2_fully,
+          R.drawable.stat_sys_signal_3_fully,
+          R.drawable.stat_sys_signal_4_fully }
     };
 
     static final int[][] DATA_SIGNAL_STRENGTH = TELEPHONY_SIGNAL_STRENGTH;
