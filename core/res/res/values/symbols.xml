@@ -2126,4 +2126,7 @@
   <java-symbol type="string" name="symbol_picker_z" />
   <java-symbol type="string" name="symbol_picker_Z" />
 
+  <!-- Irda Service -->
+  <java-symbol type="bool" name="config_enableIrdaManagerService" />
+
 </resources>
