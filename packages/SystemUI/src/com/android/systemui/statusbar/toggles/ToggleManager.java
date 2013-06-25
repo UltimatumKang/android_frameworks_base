@@ -102,6 +102,7 @@ public class ToggleManager {
     public static final String EXPANDED_DESKTOP_TOGGLE = "EXPANDEDDESKTOP";
     public static final String WIRELESS_ADB_TOGGLE = "WIRELESSADB";
     public static final String MUSIC_TOGGLE = "MUSIC";
+    public static final String CAMERA_TOGGLE = "CAMERA";
 
     private int mStyle;
     private boolean mShowRebootOnLock = true;
@@ -165,6 +166,7 @@ public class ToggleManager {
             toggleMap.put(EXPANDED_DESKTOP_TOGGLE, ExpandedDesktopToggle.class);
             toggleMap.put(WIRELESS_ADB_TOGGLE, WirelessAdbToggle.class);
             toggleMap.put(MUSIC_TOGGLE, MusicToggle.class);
+            toggleMap.put(CAMERA_TOGGLE, CameraToggle.class);
             // toggleMap.put(BT_TETHER_TOGGLE, null);
         }
         return toggleMap;

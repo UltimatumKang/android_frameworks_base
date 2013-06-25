@@ -622,6 +622,7 @@
     <string name="quick_settings_adb_off">Wireless ADB Off</string>
     <string name="quick_settings_music_play">Play</string>
     <string name="quick_settings_music_pause">Pause</string>
+    <string name="quick_settings_camera_label">Camera</string>
 
     <string name="quick_settings_screenshot">Screenshot</string>
     <string name="quick_settings_sleep">Sleep</string>
@@ -634,6 +635,9 @@
     <string name="quick_settings_quickrecord">Quick Record</string>
     <string name="quick_settings_nofile">Long Press To Record</string>
     <string name="quick_settings_volume">Volume</string>
+
+    <!-- Camera tile toasts -->
+    <string name="quick_settings_camera_error_connect">Can\'t connect to camera</string>
 
     <string name="powerwidget_screen_timeout_toast">Screen timeout set to: %1$d %2$s</string>
     <string name="brightness_label">Brightness</string>

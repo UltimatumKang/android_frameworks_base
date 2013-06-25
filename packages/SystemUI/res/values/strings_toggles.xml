@@ -56,4 +56,5 @@
     <string name="toggle_EXPANDEDDESKTOP">Expanded Desktop</string>
     <string name="toggle_WIRELESSADB">Wireless ADB</string>
     <string name="toggle_MUSIC">Music</string>
+    <string name="toggle_CAMERA">Camera</string>
 </resources>
