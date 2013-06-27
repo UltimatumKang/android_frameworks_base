@@ -723,7 +723,9 @@ public class Activity extends ContextThemeWrapper
     private CharSequence mTitle;
     private int mTitleColor = 0;
 
-    public static boolean mPieOnTop = false;
+    private boolean mQuickPeekAction = false;
+    private boolean mNtQsShadeActive = false;
+    private float mQuickPeekInitialY;
 
     final FragmentManagerImpl mFragments = new FragmentManagerImpl();
     final FragmentContainer mContainer = new FragmentContainer() {
@@ -2419,59 +2421,38 @@ public class Activity extends ContextThemeWrapper
      * @return boolean Return true if this event was consumed.
      */
     public boolean dispatchTouchEvent(MotionEvent ev) {
-            boolean mHiddenStatusbarPulldown = (Settings.System.getInt(getContentResolver(),
-                Settings.System.HIDDEN_STATUSBAR_PULLDOWN, 0) == 1);
-            // get user timeout, default at 10 sec.
-            int mHiddenStatusbarPulldownTimeout = (Settings.System.getInt(getContentResolver(),
-                Settings.System.HIDDEN_STATUSBAR_PULLDOWN_TIMEOUT, 10000));
-
-            switch (ev.getAction())
-            {
-                case MotionEvent.ACTION_DOWN:
-                    tStatus = ev.getY();
-                    if (tStatus < getStatusBarHeight() && mHiddenStatusbarPulldown)
-                    {
-                        mightBeMyGesture = true;
-                        return true;
+        final int action = ev.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                if (Settings.System.getInt(getContentResolver(),
+                    Settings.System.STATUSBAR_PEEK, 0) == 1) {
+                    if (ev.getY() < getStatusBarHeight()) {
+                        mQuickPeekInitialY = ev.getY();
+                        mQuickPeekAction = true;
+                    } else if (mNtQsShadeActive) {
+                        Settings.System.putInt(getContentResolver(),
+                                Settings.System.TOGGLE_NOTIFICATION_AND_QS_SHADE, 0);
+                        mNtQsShadeActive = false;
                     }
+                }
+                onUserInteraction();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (!mQuickPeekAction) {
                     break;
-                case MotionEvent.ACTION_MOVE:
-                    if (mightBeMyGesture && mHiddenStatusbarPulldown)
-                    {
-                        if(ev.getY() > tStatus)
-                        {
-                            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                            mHandler.postDelayed(new Runnable() {
-                            public void run() {
-                                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-                                getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                            }
-                               // User picked timeout here
-                            }, mHiddenStatusbarPulldownTimeout);
-                        }
-                        mightBeMyGesture = false;
-                        return true;
-                    }
-                    break;
-                default:
-                    mightBeMyGesture = false;
-                    break;
-              }
-              
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            if (!mPieOnTop && (Settings.System.getInt(getContentResolver(),
-                    Settings.System.STATUSBAR_PEEK, 0) == 1)) {
-                if (ev.getY() < getStatusBarHeight()) {
+                }
+                if (Math.abs(ev.getY() - mQuickPeekInitialY) > getStatusBarHeight()) {
                     Settings.System.putInt(getContentResolver(),
                             Settings.System.TOGGLE_NOTIFICATION_AND_QS_SHADE, 1);
-                } else {
-                    Settings.System.putInt(getContentResolver(),
-                            Settings.System.TOGGLE_NOTIFICATION_AND_QS_SHADE, 0);
+                        mNtQsShadeActive = true;
+                        mQuickPeekAction = false;
                 }
-            }
-            onUserInteraction();
+                break;
+            default:
+                mQuickPeekAction = false;
+                break;
         }
+
         if (getWindow().superDispatchTouchEvent(ev)) {
             return true;
         }
