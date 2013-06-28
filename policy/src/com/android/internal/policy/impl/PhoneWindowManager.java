@@ -365,7 +365,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mVolBtnMusicControls;
     boolean mIsLongPress;
 
-    // Auto-Hide Statusbar
+    boolean mStatusbarHide;
     boolean mHideStatusBar;
 
     private PowerMenuReceiver mPowerMenuReceiver;
