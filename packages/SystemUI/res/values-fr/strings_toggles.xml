@@ -18,7 +18,7 @@
     <string name="toggle_USER">Utilisateur actuel</string>
     <string name="toggle_BRIGHTNESS">Luminosité</string>
     <string name="toggle_SETTINGS">Paramètres</string>
-    <string name="toggle_WIFI">Wi-fi</string>
+    <string name="toggle_WIFI">Wi-Fi</string>
     <string name="toggle_SIGNAL">Réseau</string>
     <string name="toggle_ROTATE">Rotation automatique</string>
     <string name="toggle_CLOCK">Horloge</string>
@@ -47,8 +47,9 @@
     <string name="toggle_REBOOT">Redémarrer</string>
     <string name="toggle_STAYAWAKE">Rester écran allumé</string>
     <string name="toggle_CUSTOM">Interrupteur personnalisé</string>
-    <string name="toggle_CUSTOMIZE">Outils UKG</string>
-    <string name="toggle_DARK">Mode sombre</string>
+    <string name="toggle_CUSTOMIZE">Outils uXylon</string>
+    <string name="toggle_DARK">IU sombre</string>
     <string name="toggle_EXPANDEDDESKTOP">Bureau étendu</string>
     <string name="toggle_WIRELESSADB">ADB sans-fil</string>
+    <string name="toggle_MUSIC">Musique</string>
 </resources>
