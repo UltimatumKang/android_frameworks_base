@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 MoKee OpenSource Project
+ * Copyright (C) 2013 ParanoidAndroid Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.systemui.statusbar.pieview;
+package com.android.systemui.statusbar.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
