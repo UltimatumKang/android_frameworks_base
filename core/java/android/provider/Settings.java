@@ -2004,6 +2004,12 @@ public final class Settings {
         public static final String PIE_ANGLE = "pie_angle";
 
         /**
+         * Pie toggle behavior
+         * @hide
+         */
+        public static final String PIE_TOGGLE_BEHAVIOR = "pie_toggle_behavior";
+
+        /**
          * @hide
          */
         public static final String PIE_ENABLE_COLOR = "pie_enable_color";

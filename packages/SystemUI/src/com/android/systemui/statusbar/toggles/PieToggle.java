@@ -35,20 +35,35 @@ public class PieToggle extends StatefulToggle {
 
     @Override
     protected void doEnable() {
-        Settings.System.putInt(mContext.getContentResolver(),
-                Settings.System.PIE_CONTROLS, 1);
+        if (mDiffPie) {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.PIE_CONTROLS, 1);
+        } else {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.SPIE_CONTROLS, 1);
+        }
     }
 
     @Override
     protected void doDisable() {
-        Settings.System.putInt(mContext.getContentResolver(),
-                Settings.System.PIE_CONTROLS, 0);
+        if (mDiffPie) {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.PIE_CONTROLS, 0);
+        } else {
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.SPIE_CONTROLS, 0);
+        }
     }
 
     @Override
     protected void updateView() {
-        boolean enabled = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_CONTROLS, 0) == 1;
+        if (mDiffPie) {
+            boolean enabled = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.PIE_CONTROLS, 0) == 1;
+        } else {
+            boolean enabled = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.SPIE_CONTROLS, 0) == 1;
+        }
         setEnabledState(enabled);
         setIcon(enabled ? R.drawable.ic_qs_pie_on : R.drawable.ic_qs_pie_off);
         setLabel(enabled ? R.string.quick_settings_pie_on_label
@@ -64,6 +79,12 @@ public class PieToggle extends StatefulToggle {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.PIE_TOGGLE_BEHAVIOR), false,
+                    this);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.SPIE_CONTROLS), false,
+                    this);
+            resolver.registerContentObserver(Settings.System
                     .getUriFor(Settings.System.PIE_CONTROLS), false,
                     this);
         }
@@ -71,6 +92,9 @@ public class PieToggle extends StatefulToggle {
         @Override
         public void onChange(boolean selfChange) {
             scheduleViewUpdate();
+
+            boolean mDiffPie = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.PIE_TOGGLE_BEHAVIOR, 0) == 1;
         }
     }
 
