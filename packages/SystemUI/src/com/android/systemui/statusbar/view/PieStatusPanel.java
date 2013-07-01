@@ -215,7 +215,7 @@ public class PieStatusPanel {
                             public void run() {
                                 try {
                                     mNotificationPanel.setViewRemoval(true);
-                                    mPanel.getBar().getService().onClearAllNotifications();
+                                    mPanel.getBar().getStatusBarService().onClearAllNotifications();
                                 } catch (Exception ex) { }
                             }
                         };
