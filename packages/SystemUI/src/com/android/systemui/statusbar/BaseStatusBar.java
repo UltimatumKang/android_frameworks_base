@@ -2070,8 +2070,6 @@ public abstract class BaseStatusBar extends SystemUI implements
                 refreshPieTriggers();
             }
         }
-
-        Activity.mPieOnTop = isPieEnabled() && ((Position.TOP.FLAG & mPieTriggerSlots & mPieTriggerMask) != 0);
     }
 
     // This should only be called, when is is clear that the pie controls are active
