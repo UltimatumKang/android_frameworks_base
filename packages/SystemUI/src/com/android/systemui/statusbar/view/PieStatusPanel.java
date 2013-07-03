@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 ParanoidAndroid Project
+ * Copyright (C) 2010 MoKee OpenSource Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Animation;
@@ -81,7 +82,7 @@ public class PieStatusPanel {
     private NotificationData mNotificationData;
     private Runnable mPostCollapseCleanup = null;
 
-    private boolean mHaloActive;
+    private boolean mHaloActive, mHaloEnabled;
 
     private int mCurrentViewState = -1;
     private int mFlipViewState = -1;
@@ -128,17 +129,20 @@ public class PieStatusPanel {
     private View.OnClickListener mHaloButtonListener = new View.OnClickListener() {
         public void onClick(View v) {
             // Activate HALO
-            Settings.System.putInt(mContext.getContentResolver(),
-                    Settings.System.HALO_ACTIVE, 1);
+            Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.HALO_ACTIVE, 1, UserHandle.USER_CURRENT);
+            hidePanels(true);
         }
     };
 
     protected void showHaloButton(boolean show) {
         if (mHaloButton != null) {
             if(show) {
-                mHaloActive = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.HALO_ACTIVE, 0) == 1;
-                mHaloButton.setVisibility(!mHaloActive ? View.VISIBLE : View.GONE);
+                mHaloActive = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.HALO_ACTIVE, 0, UserHandle.USER_CURRENT) == 1;
+                mHaloEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.HALO_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+                mHaloButton.setVisibility(!mHaloActive && mHaloEnabled ? View.VISIBLE : View.GONE);
             } else {
                 mHaloButton.setVisibility(View.GONE);
             }
@@ -215,7 +219,7 @@ public class PieStatusPanel {
                             public void run() {
                                 try {
                                     mNotificationPanel.setViewRemoval(true);
-                                    mPanel.getBar().getStatusBarService().onClearAllNotifications();
+                                    mPanel.getBar().getService().onClearAllNotifications();
                                 } catch (Exception ex) { }
                             }
                         };
