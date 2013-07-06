@@ -4148,14 +4148,6 @@ public final class Settings {
         public static final String LED_BRIGHTNESS = "led_brightness";
 
         /**
-         * Control the display of the action overflow button within app UI.
-         * 0 = use system default
-         * 1 = force on
-         * @hide
-         */
-        public static final String UI_FORCE_OVERFLOW_BUTTON = "ui_force_overflow_button";
-
-      /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
          * @hide
