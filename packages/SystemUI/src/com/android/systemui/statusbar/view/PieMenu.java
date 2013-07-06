@@ -226,6 +226,7 @@ public class PieMenu extends FrameLayout {
     private boolean mUseSearch;
     private boolean mUseLastApp;
     private boolean mHapticFeedback;
+    private boolean mIsProtected;
 
     // Animations
     private int mGlowOffsetLeft = 150;
@@ -296,6 +297,7 @@ public class PieMenu extends FrameLayout {
                 Settings.System.PIE_GAP, 2);
         mHapticFeedback = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) != 0;
+        mIsProtected = mPanel.getKeyguardStatus();
 
         // Snap
         mSnapRadius = (int)(mResources.getDimensionPixelSize(R.dimen.pie_snap_radius) * mPieSize);
@@ -779,7 +781,7 @@ public class PieMenu extends FrameLayout {
             int state;
 
             // Draw background
-            if (mStatusMode != -1 && !mNavbarOff) {
+            if (mStatusMode != -1 && !mNavbarOff && !mIsProtected) {
                 canvas.drawARGB((int)(mAnimators[ANIMATOR_DEC_SPEED15].fraction * 0xcc), 0, 0, 0);
             }
 
@@ -815,7 +817,7 @@ public class PieMenu extends FrameLayout {
             }
 
             // Paint status report only if settings allow
-            if (mStatusMode != -1 && !mNavbarOff) {
+            if (mStatusMode != -1 && !mNavbarOff && !mIsProtected) {
 
                 // Draw chevron rings
                 mChevronBackgroundLeft.setAlpha((int)(mAnimators[ANIMATOR_DEC_SPEED15].fraction * mGlowOffsetLeft / 2 * (mPanelOrientation == Gravity.TOP ? 0.2 : 1)));
@@ -1050,8 +1052,8 @@ public class PieMenu extends FrameLayout {
                         break;
                 }
 
-                if (!mNavbarOff) {
-                    if (state == PieStatusPanel.QUICK_SETTINGS_PANEL &&
+                if (!mNavbarOff && !mIsProtected) {
+                    if (state == PieStatusPanel.QUICK_SETTINGS_PANEL && 
                             mStatusPanel.getFlipViewState() != PieStatusPanel.QUICK_SETTINGS_PANEL
                             && mStatusPanel.getCurrentViewState() != PieStatusPanel.QUICK_SETTINGS_PANEL) {
                         mGlowOffsetRight = mPanelOrientation != Gravity.TOP ? 150 : 255;;
