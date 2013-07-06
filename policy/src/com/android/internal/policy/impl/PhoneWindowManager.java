@@ -1190,13 +1190,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     boolean expandDesktopModeOn = Settings.System.getInt(
                             mContext.getContentResolver(),
                             Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1;
-                    int expandedMode = Settings.System.getInt(mContext.getContentResolver(),
-                            Settings.System.EXPANDED_DESKTOP_MODE, 0);
-                    if (!expandDesktopModeOn && expandedMode == 0) {
+                    int expandedStyle = Settings.System.getInt(mContext.getContentResolver(),
+                            Settings.System.EXPANDED_DESKTOP_STYLE, 0);
+                    if (!expandDesktopModeOn && expandedStyle == 0) {
                         // Expanded desktop is going to turn on, default to 2 since
-                        // EXPANDED_DESKTOP_MODE has not been set
+                        // EXPANDED_DESKTOP_STYLE has not been set
                         Settings.System.putInt(mContext.getContentResolver(),
-                            Settings.System.EXPANDED_DESKTOP_MODE, 2);
+                            Settings.System.EXPANDED_DESKTOP_STYLE, 2);
                         Runnable expandedDesktopToast = new Runnable() {
                             public void run() {
                                 Toast.makeText(mContext, R.string.expanded_mode_default_set, Toast.LENGTH_LONG).show();
@@ -1632,6 +1632,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (expandedDesktopStyle != mExpandedDesktopStyle) {
                 mExpandedDesktopStyle = expandedDesktopStyle;
                 updateDisplayMetrics = true;
+            }
 
             boolean keyRebindingEnabled = Settings.System.getInt(resolver,
                     Settings.System.HARDWARE_KEY_REBINDING, 0) == 1;
