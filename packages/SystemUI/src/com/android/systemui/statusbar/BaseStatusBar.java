@@ -664,7 +664,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         boolean navbarZero = Integer.parseInt(ExtendedPropertiesUtils
                 .getProperty("com.android.systemui.navbar.dpi", "100")) == 0;
 
-        return (papie || piestatus && expanded || piestatus && navbarZero);
+        return ((papie) || (expanded && navbarZero && !piestatus));
     }
 
     public void updatePieControls() {
