@@ -1966,6 +1966,14 @@ public final class Settings {
         public static final String PIE_GAP = "pie_gap";
 
         /**
+         * Pie expanded status
+         * 0 == Using Expanded Desktop or sliding nav bar height to 0, there will be no effect.
+         * 1 == Using Expanded Desktop or sliding nav bar height to 0, pie will be activated.
+         * @hide
+         */
+        public static final String PIE_STATUS_EXPANDED = "pie_status_expanded";
+
+        /**
          * Pie trigger fraction, should default to 1
          * @hide
          */
