@@ -1504,6 +1504,7 @@
     
     <!-- In WiFi notification -->
     <string name="notify_turn_wifi_off_title">Éteindre le Wi-Fi</string>
+    <string name="notify_turn_wifi_ap_off_title">Éteindre le modem Wi-Fi</string>
     
     <!-- Privacy Guard -->
     <string name="permlab_changePrivacyGuardState">Active ou désactive la protection des données</string>
@@ -1541,5 +1542,10 @@
     <string name="wildcardProfile">Autres</string>
     <string name="profile_picker_title">Profils</string>
     <string name="profile_none">Aucun</string>
+    
+    <string name="permlab_cancelNotifications">annuler les notifications d\'application</string>
+    <string name="permdesc_cancelNotifications">Permet à l\'application d\'annuler les notifications créées par d\'autres applications.</string>
+    <string name="permlab_interceptSmsSent">intercepte les SMS sortants</string>
+    <string name="permdesc_interceptSmsSent">Permet à l\'application d\'intercepter un SMS sortant. Des applications malveillantes peuvent utiliser cette option pour empêcher les SMS d\'être envoyés.</string>
     
 </resources>
