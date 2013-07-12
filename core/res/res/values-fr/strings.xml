@@ -760,6 +760,9 @@
     <string name="lockscreen_pattern_correct" msgid="9039008650362261237">"Combinaison correcte !"</string>
     <string name="lockscreen_pattern_wrong" msgid="4317955014948108794">"Veuillez réessayer."</string>
     <string name="lockscreen_password_wrong" msgid="5737815393253165301">"Veuillez réessayer."</string>
+    <string name="lockscreen_gesture_instructions">"Dessinez un geste pour déverrouiller le téléphone"</string>
+    <string name="lockscreen_gesture_correct">Geste correct !</string>
+    <string name="lockscreen_gesture_wrong">"Veuillez réessayer."</string>
     <string name="faceunlock_multiple_failures" msgid="754137583022792429">"Nombre maximal autorisé de tentatives Face Unlock atteint."</string>
     <string name="lockscreen_discharging">Sur batterie, <xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
     <string name="lockscreen_plugged_in" msgid="8057762828355572315">"En charge (<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>)"</string>
@@ -826,10 +829,12 @@
     <string name="keyguard_accessibility_expand_lock_area" msgid="519859720934178024">"Développer la zone de déverrouillage"</string>
     <string name="keyguard_accessibility_slide_unlock" msgid="2959928478764697254">"Déverrouillage en faisant glisser votre doigt sur l\'écran"</string>
     <string name="keyguard_accessibility_pattern_unlock" msgid="1490840706075246612">"Déverrouillage par schéma"</string>
+    <string name="keyguard_accessibility_gesture_unlock">"Déverrouillage par geste"</string>
     <string name="keyguard_accessibility_face_unlock" msgid="4817282543351718535">"Déverrouillage par reconnaissance faciale"</string>
     <string name="keyguard_accessibility_pin_unlock" msgid="2469687111784035046">"Déverrouillage par code PIN"</string>
     <string name="keyguard_accessibility_password_unlock" msgid="7675777623912155089">"Déverrouillage par mot de passe"</string>
     <string name="keyguard_accessibility_pattern_area" msgid="7679891324509597904">"Zone du schéma"</string>
+    <string name="keyguard_accessibility_gesture_area">"Zone du geste"</string>
     <string name="keyguard_accessibility_slide_area" msgid="6736064494019979544">"Zone où faire glisser votre doigt sur l\'écran"</string>
     <string name="password_keyboard_label_symbol_key" msgid="992280756256536042">"?123"</string>
     <string name="password_keyboard_label_alpha_key" msgid="8001096175167485649">"ABC"</string>
@@ -1416,10 +1421,13 @@
     <string name="kg_emergency_call_label" msgid="684946192523830531">"Appel d\'urgence"</string>
     <string name="kg_forgot_pattern_button_text" msgid="8852021467868220608">"J\'ai oublié le schéma"</string>
     <string name="kg_wrong_pattern" msgid="1850806070801358830">"Schéma incorrect."</string>
+    <string name="kg_forgot_gesture_button_text">"J\'ai oublié le geste"</string>
+    <string name="kg_wrong_gesture">"Geste incorrect."</string>
     <string name="kg_wrong_password" msgid="2333281762128113157">"Mot de passe incorrect."</string>
     <string name="kg_wrong_pin" msgid="1131306510833563801">"Code PIN incorrect."</string>
     <string name="kg_too_many_failed_attempts_countdown" msgid="6358110221603297548">"Réessayez dans <xliff:g id="NUMBER">%d</xliff:g> secondes."</string>
     <string name="kg_pattern_instructions" msgid="398978611683075868">"Dessinez votre schéma."</string>
+    <string name="kg_gesture_instructions">"Dessinez votre geste."</string>
     <string name="kg_sim_pin_instructions" msgid="2319508550934557331">"Saisissez le code PIN de la carte SIM."</string>
     <string name="kg_pin_instructions" msgid="2377242233495111557">"Saisissez le code PIN."</string>
     <string name="kg_password_instructions" msgid="5753646556186936819">"Saisissez votre mot de passe."</string>
@@ -1443,6 +1451,7 @@
     <string name="kg_too_many_failed_pin_attempts_dialog_message" msgid="8276745642049502550">"Vous avez saisi un code PIN incorrect à <xliff:g id="NUMBER_0">%d</xliff:g> reprises. "\n\n"Veuillez réessayer dans <xliff:g id="NUMBER_1">%d</xliff:g> secondes."</string>
     <string name="kg_too_many_failed_password_attempts_dialog_message" msgid="7813713389422226531">"Vous avez saisi un mot de passe incorrect à <xliff:g id="NUMBER_0">%d</xliff:g> reprises. "\n\n"Veuillez réessayer dans <xliff:g id="NUMBER_1">%d</xliff:g> secondes."</string>
     <string name="kg_too_many_failed_pattern_attempts_dialog_message" msgid="74089475965050805">"Vous avez dessiné un schéma de déverrouillage incorrect à <xliff:g id="NUMBER_0">%d</xliff:g> reprises."\n\n"Veuillez réessayer dans <xliff:g id="NUMBER_1">%d</xliff:g> secondes."</string>
+    <string name="kg_too_many_failed_gesture_attempts_dialog_message">"Vous avez dessiné un geste de déverrouillage incorrect à <xliff:g id="NUMBER_0">%d</xliff:g> reprises."\n\n"Veuillez réessayer dans <xliff:g id="NUMBER_1">%d</xliff:g> secondes."</string>
     <string name="kg_failed_attempts_almost_at_wipe" product="tablet" msgid="1575557200627128949">"Vous avez tenté de déverrouiller la tablette de façon incorrecte à <xliff:g id="NUMBER_0">%d</xliff:g> reprises. Si vous échouez encore <xliff:g id="NUMBER_1">%d</xliff:g> fois, sa configuration d\'usine sera rétablie, et toutes les données utilisateur seront perdues."</string>
     <string name="kg_failed_attempts_almost_at_wipe" product="default" msgid="4051015943038199910">"Vous avez tenté de déverrouiller le téléphone de façon incorrecte à <xliff:g id="NUMBER_0">%d</xliff:g> reprises. Si vous échouez encore <xliff:g id="NUMBER_1">%d</xliff:g> fois, sa configuration d\'usine sera rétablie, et toutes les données utilisateur seront perdues."</string>
     <string name="kg_failed_attempts_now_wiping" product="tablet" msgid="2072996269148483637">"Vous avez tenté de déverrouiller la tablette de façon incorrecte à <xliff:g id="NUMBER">%d</xliff:g> reprises. Sa configuration d\'usine va être rétablie."</string>
@@ -1463,7 +1472,7 @@
     <string name="reboot_recovery">Recovery</string>
     <string name="reboot_download">Download</string>
     <string name="reboot_bootloader">Bootloader</string>
-    <string name="reboot_progress">Redémarrage en cours...</string>	
+    <string name="reboot_progress">Redémarrage en cours...</string>
     <string name="toast_rotation_unlocked">Rotation de l\'écran débloquée</string>
     <string name="toast_rotation_locked">Rotation de l\'écran bloquée</string>
     <string name="global_actions_toggle_expanded_desktop_mode">Bureau étendu</string>
@@ -1487,6 +1496,7 @@
     <string name="action_lastapp">Dernière App</string>
     <string name="action_power">Power</string>
     <string name="action_notifications">Notifications</string>
+    <string name="action_quicksettings">Réglages rapides</string>
     <string name="action_assist">Recherche (Google Now)</string>
     <string name="action_clockoptions">Options Horloge</string>
     <string name="action_voiceassist">Recherche vocale</string>
