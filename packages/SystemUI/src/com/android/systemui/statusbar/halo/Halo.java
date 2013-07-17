@@ -956,7 +956,7 @@ public class Halo extends FrameLayout implements Ticker.TickerCallback {
             mHaloTextViewR.setGravity(Gravity.CENTER_HORIZONTAL);
             mHaloTextViewR.setMaxLines(2);
             mHaloTextViewL.setText(tickerText);
-            mHaloTextViewL.setPadding(shrt, top, wide, bttm);
+            mHaloTextViewL.setPadding(wide, top, shrt, bttm);
             mHaloTextViewL.setGravity(Gravity.CENTER_HORIZONTAL);
             mHaloTextViewL.setMaxLines(2);
 
