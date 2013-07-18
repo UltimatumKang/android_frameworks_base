@@ -221,9 +221,6 @@ public class ViewConfiguration {
     private final int mOverflingDistance;
     private final boolean mFadingMarqueeEnabled;
 
-    private boolean sHasPermanentMenuKey;
-    private boolean sHasPermanentMenuKeySet;
-
     private Context mContext;
 
     static final SparseArray<ViewConfiguration> sConfigurations =
@@ -291,16 +288,6 @@ public class ViewConfiguration {
 
         mOverscrollDistance = (int) (sizeAndDensity * OVERSCROLL_DISTANCE + 0.5f);
         mOverflingDistance = (int) (sizeAndDensity * OVERFLING_DISTANCE + 0.5f);
-
-        if (!sHasPermanentMenuKeySet) {
-            IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
-            try {
-                sHasPermanentMenuKey = !wm.hasSystemNavBar() && !wm.hasNavigationBar();
-                sHasPermanentMenuKeySet = true;
-            } catch (RemoteException ex) {
-                sHasPermanentMenuKey = false;
-            }
-        }
 
         mFadingMarqueeEnabled = res.getBoolean(
                 com.android.internal.R.bool.config_ui_enableFadingMarquee);
@@ -682,9 +669,14 @@ public class ViewConfiguration {
      * @return true if a permanent menu key is present, false otherwise.
      */
     public boolean hasPermanentMenuKey() {
-        // Report no menu key if only soft buttons are available
-        if (!sHasPermanentMenuKey) {
-            return false;
+        IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+        // Report no menu key if device has soft buttons
+        try {
+            if (wm.hasSystemNavBar() || wm.hasNavigationBar()) {
+                return false;
+            }
+        } catch (RemoteException ex) {
+            // do nothing, continue trying to guess
         }
 
         // Report no menu key if overflow button is forced to enabled
@@ -696,11 +688,10 @@ public class ViewConfiguration {
         }
 
         // Report menu key presence based on hardware key rebinding
-        IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
         try {
             return wm.hasMenuKeyEnabled();
         } catch (RemoteException ex) {
-            return sHasPermanentMenuKey;
+            return true;
         }
     }
 
