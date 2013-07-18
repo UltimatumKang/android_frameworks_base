@@ -688,7 +688,7 @@ public class ViewConfiguration {
         if (showOverflowButton == 1) {
             // Force overflow button on by reporting that
             // the device has no permanent menu key
-            return false;
+            return true;
         } else {
             return sHasPermanentMenuKey;
         }
