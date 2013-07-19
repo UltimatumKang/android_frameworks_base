@@ -705,7 +705,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         final AlertDialog.Builder ab = new AlertDialog.Builder(mContext);
 
         AlertDialog dialog = ab
-                .setTitle(R.string.global_action_choose_profile)
                 .setSingleChoiceItems(names, checkedItem, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         if (which < 0)

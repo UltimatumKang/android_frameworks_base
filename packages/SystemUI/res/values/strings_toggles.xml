@@ -42,6 +42,7 @@
     <string name="toggle_SOUNDSTATE">Sound state</string>
     <string name="toggle_VOLUME">Volume</string>
     <string name="toggle_NAVBARHIDE">Navbar hide</string>
+    <string name="toggle_PROFILE">Profiles</string>
     <string name="toggle_POWERMENU">Power menu</string>
     <string name="toggle_QUICKRECORD">Quick record</string>
     <string name="toggle_QUIETHOURS">Quiet hours</string>
