@@ -436,7 +436,11 @@ public class Halo extends FrameLayout implements Ticker.TickerCallback {
 
     public void setStatusBar(BaseStatusBar bar) {
         mBar = bar;
-        if (mBar.getTicker() != null) mBar.getTicker().setUpdateEvent(this);
+        if(ExtendedPropertiesUtils.isTablet()) {
+            if (mBar.getTabletTicker() != null) mBar.getTabletTicker().setUpdateEvent(this);
+        } else {
+            if (mBar.getTicker() != null) mBar.getTicker().setUpdateEvent(this);
+        }
         mNotificationData = mBar.getNotificationData();
         loadLastNotification(true);
     }
@@ -628,6 +632,7 @@ public class Halo extends FrameLayout implements Ticker.TickerCallback {
 
                     if (mCurrentNotficationEntry == null) clearTicker();
                     mLastNotificationEntry = null;
+                    loadLastNotification(true);
 
                     mEffect.nap(1500);
                     if (mHideTicker) mEffect.sleep(HaloEffect.NAP_TIME + 3000, HaloEffect.SLEEP_TIME, false);
@@ -1210,7 +1215,8 @@ public class Halo extends FrameLayout implements Ticker.TickerCallback {
 
     void clearTicker() {
         mEffect.mHaloIcon.setImageDrawable(null);
-        mEffect.setHaloMessageNumber(0, false);
+        mEffect.msgNumberAlphaAnimator.cancel(true);
+        mEffect.mHaloNumber.setAlpha(0f);
         mContentIntent = null;
         mCurrentNotficationEntry = null;
         mEffect.killTicker();
