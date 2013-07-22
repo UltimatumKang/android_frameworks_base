@@ -232,8 +232,8 @@
     <string name="quick_settings_gps_off_label">GPS Off</string>
     <string name="quick_settings_data_on_label">Data On</string>
     <string name="quick_settings_data_off_label">Data Off</string>
-    <string name="quick_settings_navbar_hide_on_label">NavBar Hide On</string>
-    <string name="quick_settings_navbar_hide_off_label">NavBar Hide Off</string>
+    <string name="quick_settings_navbar_hide_on_label">Barre discrète On</string>
+    <string name="quick_settings_navbar_hide_off_label">Barre discrète Off</string>
     <string name="quick_settings_quiet_hours_on_label">Période silencieuse On</string>
     <string name="quick_settings_quiet_hours_off_label">Période silencieuse Off</string>
     <string name="quick_settings_sound_on">Son On</string>
@@ -243,7 +243,7 @@
     <string name="quick_settings_stayawake_off">Rester allumé Off</string>
     <string name="quick_settings_screenshot">Capture d\'écran</string>
     <string name="quick_settings_sleep">Verrouiller</string>
-    <string name="quick_settings_powermenu">Power Menu</string>
+    <string name="quick_settings_powermenu">Menu Power</string>
     <string name="quick_settings_reboot">Redémarrer</string>
     <string name="quick_settings_recording">Enregistrement...</string>
     <string name="quick_settings_recordingcap">Enregistrement terminé</string>
@@ -253,6 +253,7 @@
     <string name="quick_settings_expanded_desktop">Étendu</string>
     <string name="quick_settings_expanded_desktop_off">Normal</string>
     <string name="quick_settings_adb_off">ADB sans-fil Off</string>
+    <string name="quick_settings_customize_label">Outils</string>
 
     <string name="status_bar_help_title">"Les notifications s’affichent ici"</string>
     <string name="status_bar_help_text">"Accédez-y à tout moment en faisant glisser le doigt vers le bas."\n"Répétez l\'opération pour accéder aux commandes du système."</string>
@@ -279,7 +280,7 @@
     <string name="action_power">Power</string>
     <string name="action_search">Rechercher</string>
     <string name="action_notifications">Notifications</string>
-    <string name="action_lastapp">Dernière App</string>
+    <string name="action_lastapp">Dernière app.</string>
     <string name="action_none">Vide</string>
 
     <string name="widgets">Widgets</string>
@@ -293,13 +294,26 @@
     <!-- PIE Date -->
     <string name="pie_date_format">ccc dd MMM yyyy</string>
 
+    <!-- Battery status in pie controls -->
+    <string name="pie_battery_status_charging">En charge (<xliff:g id="percent">%d</xliff:g>%%)</string>
+    <string name="pie_battery_status_full">Chargé</string>
+    <string name="pie_battery_status_discharging"><xliff:g id="percent">%d</xliff:g>%% restants</string>
+
+    <!-- Phone status in pie controls -->
+    <string name="pie_phone_status_no_service">Pas de service</string>
+    <string name="pie_phone_status_airplane_mode">Mode avion activé</string>
+    <string name="pie_phone_status_emergency_only">Appels d\'urgence uniquement</string>
+
     <!-- Recents Ram Bar -->
     <string name="service_free_mem"><xliff:g id="memory">%1$s</xliff:g> libres</string>
     <string name="service_used_mem"><xliff:g id="memory">%1$s</xliff:g> utilisés</string>
     
     <!-- HALO -->
-    <string name="halo_dismiss">Ignorer la notification</string>
+    <string name="halo_dismiss">Effacer la notification</string>
     <string name="halo_hide">Masquer</string>
-    <string name="halo_clear_all">Effacer toutes les notif.</string>
-    <string name="halo_silence">Cacher et faire taire jusqu\'au réveil</string>
+    <string name="halo_clear_all">Effacer les notifications</string>
+    <string name="halo_silence">Masquer et bloquer jusqu\'au réveil</string>
+    <string name="halo_tutorial1">Je suis HALO.</string>
+    <string name="halo_tutorial2">Double-appui pour me déplacer, ou glisser pour me gérer et m\'utiliser.</string>
+    <string name="halo_tutorial3">Personnalisation possible dans les Outils (Divers).</string>
 </resources>
