@@ -4047,10 +4047,16 @@ public final class Settings {
         public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL = "lockscreen_quick_unlock_control";
 
         /**
-         * Whether to use the custom quick unlock screen control
+         * Lockscreen tint color (color + alpha (argb))
          * @hide
          */
         public static final String LOCKSCREEN_COLOR_ALPHA = "lockscreen_color_alpha";
+
+        /**
+         * Lockscreen text color
+         * @hide
+         */
+        public static final String LOCKSCREEN_CUSTOM_TEXT_COLOR = "lockscreen_custom_text_color";
 
         /**
          * @hide
