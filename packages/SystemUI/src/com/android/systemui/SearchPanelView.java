@@ -45,8 +45,12 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.media.AudioManager;
+<<<<<<< HEAD
 import android.media.ToneGenerator;
 import android.os.Vibrator;
+=======
+import android.os.Bundle;
+>>>>>>> 2e89f0b... Fix Google Now animation.
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -276,6 +280,25 @@ public class SearchPanelView extends FrameLayout implements
                     SysAction.launchAction(mContext, intentList.get(target));
                 }
                 mHandler.removeCallbacks(SetLongPress);
+
+            final int resId = mGlowPadView.getResourceIdForTarget(target);
+            String action = mTargetActivities[target - mStartPosOffset];
+            boolean isAssist = NavigationRingConstants.ACTION_ASSIST.equals(action);
+            Bundle options = null;
+
+            if (isAssist) {
+                ActivityOptions opts = ActivityOptions.makeCustomAnimation(mContext,
+                        R.anim.search_launch_enter, R.anim.search_launch_exit,
+                        getHandler(), SearchPanelView.this);
+                options = opts.toBundle();
+                mWaitingForLaunch = true;
+                vibrate();
+            }
+
+            boolean result = mActionTarget.launchAction(
+                    mTargetActivities[target - mStartPosOffset], options);
+            if (!result && isAssist) {
+                onAnimationStarted();
             }
         }
 
