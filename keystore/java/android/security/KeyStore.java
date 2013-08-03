@@ -47,6 +47,13 @@ public class KeyStore {
     public static final int UNDEFINED_ACTION = 9;
     public static final int WRONG_PASSWORD = 10;
 
+    // Used for UID field to indicate the calling UID.
+    public static final int UID_SELF = -1;
+
+    // Flags for "put" "import" and "generate"
+    public static final int FLAG_NONE = 0;
+    public static final int FLAG_ENCRYPTED = 1;
+
     // States
     public enum State { UNLOCKED, LOCKED, UNINITIALIZED };
 
@@ -71,9 +78,8 @@ public class KeyStore {
         }
     }
 
-    private byte[] get(byte[] key) {
-        ArrayList<byte[]> values = execute('g', key);
-        return (values == null || values.isEmpty()) ? null : values.get(0);
+    public boolean isUnlocked() {
+        return state() == State.UNLOCKED;
     }
 
     public byte[] get(String key) {
@@ -85,36 +91,46 @@ public class KeyStore {
         return mError == NO_ERROR;
     }
 
-    public boolean put(String key, byte[] value) {
-        return put(getKeyBytes(key), value);
+    public boolean put(String key, byte[] value, int uid, int flags) {
+        try {
+            return mBinder.insert(key, value, uid, flags) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
-    private boolean delete(byte[] key) {
-        execute('d', key);
-        return mError == NO_ERROR;
+    public boolean delete(String key, int uid) {
+        try {
+            return mBinder.del(key, uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean delete(String key) {
-        return delete(getKeyBytes(key));
+        return delete(key, UID_SELF);
     }
 
-    private boolean contains(byte[] key) {
-        execute('e', key);
-        return mError == NO_ERROR;
+    public boolean contains(String key, int uid) {
+        try {
+            return mBinder.exist(key, uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean contains(String key) {
-        return contains(getKeyBytes(key));
+        return contains(key, UID_SELF);
     }
 
-    public byte[][] saw(byte[] prefix) {
-        ArrayList<byte[]> values = execute('s', prefix);
-        return (values == null) ? null : values.toArray(new byte[values.size()][]);
-    }
-
-    public String[] saw(String prefix) {
-        byte[][] values = saw(getKeyBytes(prefix));
-        if (values == null) {
+    public String[] saw(String prefix, int uid) {
+        try {
+            return mBinder.saw(prefix, uid);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
             return null;
         }
         String[] strings = new String[values.length];
@@ -122,6 +138,10 @@ public class KeyStore {
             strings[i] = toKeyString(values[i]);
         }
         return strings;
+    }
+
+    public String[] saw(String prefix) {
+        return saw(prefix, UID_SELF);
     }
 
     public boolean reset() {
@@ -162,22 +182,22 @@ public class KeyStore {
         return mError == NO_ERROR;
     }
 
-    public boolean generate(String key) {
-        return generate(getKeyBytes(key));
+    public boolean generate(String key, int uid, int flags) {
+        try {
+            return mBinder.generate(key, uid, flags) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
-    private boolean importKey(byte[] keyName, byte[] key) {
-        execute('m', keyName, key);
-        return mError == NO_ERROR;
-    }
-
-    public boolean importKey(String keyName, byte[] key) {
-        return importKey(getKeyBytes(keyName), key);
-    }
-
-    private byte[] getPubkey(byte[] key) {
-        ArrayList<byte[]> values = execute('b', key);
-        return (values == null || values.isEmpty()) ? null : values.get(0);
+    public boolean importKey(String keyName, byte[] key, int uid, int flags) {
+        try {
+            return mBinder.import_key(keyName, key, uid, flags) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public byte[] getPubkey(String key) {
@@ -189,13 +209,17 @@ public class KeyStore {
         return mError == NO_ERROR;
     }
 
-    public boolean delKey(String key) {
-        return delKey(getKeyBytes(key));
+    public boolean delKey(String key, int uid) {
+        try {
+            return mBinder.del_key(key, uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
-    private byte[] sign(byte[] keyName, byte[] data) {
-        final ArrayList<byte[]> values = execute('n', keyName, data);
-        return (values == null || values.isEmpty()) ? null : values.get(0);
+    public boolean delKey(String key) {
+        return delKey(key, UID_SELF);
     }
 
     public byte[] sign(String key, byte[] data) {
@@ -310,34 +334,34 @@ public class KeyStore {
         return null;
     }
 
-    /**
-     * ModifiedUtf8 is used for key encoding to match the
-     * implementation of NativeCrypto.ENGINE_load_private_key.
-     */
-    private static byte[] getKeyBytes(String string) {
+    public boolean duplicate(String srcKey, int srcUid, String destKey, int destUid) {
         try {
-            int utfCount = (int) ModifiedUtf8.countBytes(string, false);
-            byte[] result = new byte[utfCount];
-            ModifiedUtf8.encode(result, 0, string);
-            return result;
-        } catch (UTFDataFormatException e) {
-            throw new RuntimeException(e);
+            return mBinder.duplicate(srcKey, srcUid, destKey, destUid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
         }
     }
 
-    private static String toKeyString(byte[] bytes) {
+    public boolean isHardwareBacked() {
         try {
-            return ModifiedUtf8.decode(bytes, new char[bytes.length], 0, bytes.length);
-        } catch (UTFDataFormatException e) {
-            throw new RuntimeException(e);
+            return mBinder.is_hardware_backed() == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
         }
     }
 
-    private static byte[] getPasswordBytes(String password) {
-        return password.getBytes(Charsets.UTF_8);
+    public boolean clearUid(int uid) {
+        try {
+            return mBinder.clear_uid(uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
-    private static byte[] getUidBytes(int uid) {
-        return Integer.toString(uid).getBytes(Charsets.UTF_8);
+    public int getLastError() {
+        return mError;
     }
 }

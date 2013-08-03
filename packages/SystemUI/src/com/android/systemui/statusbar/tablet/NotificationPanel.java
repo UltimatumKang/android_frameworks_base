@@ -81,13 +81,13 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
     boolean mShowing;
     boolean mHasClearableNotifications = false;
     int mNotificationCount = 0;
+    NotificationPanelTitle mTitleArea;
     ImageView mSettingsButton;
     ImageView mNotificationButton;
-    View mNotificationArea;
     View mNotificationScroller;
     ViewGroup mContentFrame;
-    View mSettingsView;
     Rect mContentArea = new Rect();
+    View mSettingsView;
     ViewGroup mContentParent;
     TabletStatusBar mBar;
     View mClearButton;
@@ -155,6 +155,12 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
 
         mContentParent = (ViewGroup)findViewById(R.id.content_parent);
         mContentParent.bringToFront();
+
+        mTitleArea = (NotificationPanelTitle) findViewById(R.id.title_area);
+        mTitleArea.setPanel(this);
+
+        mSettingsButton = (ImageView) findViewById(R.id.settings_button);
+        mNotificationButton = (ImageView) findViewById(R.id.notification_button);
 
         mNotificationScroller = findViewById(R.id.notification_scroller);
         mContentFrame = (ViewGroup)findViewById(R.id.content_frame);
@@ -769,6 +775,17 @@ public class NotificationPanel extends RelativeLayout implements StatusBarPanel,
             updatePanelModeButtons();
         }
     }
+
+    public void refreshLayout(int layoutDirection) {
+        // Force asset reloading
+        mSettingsButton.setImageDrawable(null);
+        mSettingsButton.setImageResource(R.drawable.ic_notify_settings);
+
+        // Force asset reloading
+        mNotificationButton.setImageDrawable(null);
+        mNotificationButton.setImageResource(R.drawable.ic_notifications);
+    }
+}
 
     private static class FastColorDrawable extends Drawable {
         private final int mColor;
