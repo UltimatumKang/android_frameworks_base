@@ -5010,25 +5010,6 @@ public final class Settings {
          */
         public static final String FOREGROUND_APP = "foreground_app"; 
 
-        /**
-         * User Interface State
-         * 1 = Rebuild UI, resets to 0 automatically
-         * @hide
-         */
-        public static final String USER_INTERFACE_STATE = "user_interface_state";
-
-        /**
-         * Allows to show the background activity back the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_SEE_THROUGH = "lockscreen_see_through";
-
-        /**
-         * Sets the lockscreen background style
-         * @hide
-         */
-        public static final String LOCKSCREEN_BACKGROUND = "lockscreen_background";
-
         /**	
          * Give MMS Notifications a breathing effect
          * @hide
