@@ -16,6 +16,7 @@
 
 package com.android.systemui.statusbar.halo;
 
+import android.os.Handler;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
@@ -54,6 +55,7 @@ public class HaloProperties extends FrameLayout {
         MESSAGE
     }
 
+    private Handler mAnimQueue = new Handler();
     private LayoutInflater mInflater;
 
     protected int mHaloX = 0, mHaloY = 0;
@@ -118,9 +120,9 @@ public class HaloProperties extends FrameLayout {
         mHaloTickerContainer = (RelativeLayout)mHaloContentView.findViewById(R.id.container);
         mHaloTickerContent = mHaloContentView.findViewById(R.id.ticker);
         mHaloTextViewR = (TextView) mHaloTickerContent.findViewById(R.id.bubble_r);
-        mHaloTextViewR.setAlpha(0f);
+        mHaloTextViewR.setAlpha(1f);
         mHaloTextViewL = (TextView) mHaloTickerContent.findViewById(R.id.bubble_l);
-        mHaloTextViewL.setAlpha(0f);
+        mHaloTextViewL.setAlpha(1f);
 
         updateColorView();
 
@@ -179,6 +181,12 @@ public class HaloProperties extends FrameLayout {
         mHaloTextViewR.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSpeechTextSize);
         mHaloTextViewL.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSpeechTextSize);
 
+        final int newBatchIconSize = (int)(mContext.getResources().getDimensionPixelSize(R.dimen.halo_number_icon_size) * fraction);
+        RelativeLayout.LayoutParams layoutParams3 = new RelativeLayout.LayoutParams(newBatchIconSize, newBatchIconSize);
+        layoutParams3.addRule(RelativeLayout.CENTER_VERTICAL);
+        layoutParams3.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        mHaloNumberIcon.setLayoutParams(layoutParams3);
+
         updateResources();
         updateColorView();
     }
@@ -209,40 +217,47 @@ public class HaloProperties extends FrameLayout {
 
     protected CustomObjectAnimator msgNumberFlipAnimator = new CustomObjectAnimator(this);
     protected CustomObjectAnimator msgNumberAlphaAnimator = new CustomObjectAnimator(this);
-    public void setHaloMessageNumber(int value, boolean alwaysFlip) {
+    public void setHaloMessageNumber(final int value, final boolean alwaysFlip, int delay) {
 
-        // Allow transitions only if no overlay is set
-        if (mHaloCurrentOverlay == null) {
-            msgNumberAlphaAnimator.cancel(true);
-            float oldAlpha = mHaloNumberContainer.getAlpha();
+        mAnimQueue.removeCallbacksAndMessages(null);
+        mAnimQueue.postDelayed(new Runnable() {
+            public void run() {
+                // Allow transitions only if no overlay is set
+                if (mHaloCurrentOverlay == null) {
+                    msgNumberAlphaAnimator.cancel(true);
+                    float oldAlpha = mHaloNumberContainer.getAlpha();
 
-            mHaloNumberContainer.setAlpha(1f);            
-            mHaloNumberIcon.setAlpha(0f);
-            if (value < 1) {
-                mHaloNumber.setText("");
-                mHaloNumberIcon.setAlpha(1f);                
-            } else if (value < 100) {
-                mHaloNumber.setText(String.valueOf(value));
-            } else {
-                mHaloNumber.setText("+");
-            }
-            
-            if (value < 1) {
-                msgNumberAlphaAnimator.animate(ObjectAnimator.ofFloat(mHaloNumberContainer, "alpha", 0f).setDuration(1000),
-                        new DecelerateInterpolator(), null, 1500, null);
-            }
+                    mHaloNumberContainer.setAlpha(1f);
+                    mHaloNumber.setAlpha(1f);
+                    mHaloNumberIcon.setAlpha(0f);
+                    if (value < 1) {
+                        mHaloNumber.setText("");
+                        mHaloNumberIcon.setAlpha(1f);
+                    } else if (value < 100) {
+                        mHaloNumber.setText(String.valueOf(value));
+                    } else {
+                        mHaloNumber.setText("+");
+                    }
+                    
+                    if (value < 1) {
+                        msgNumberAlphaAnimator.animate(ObjectAnimator.ofFloat(mHaloNumberContainer, "alpha", 0f).setDuration(1000),
+                                new DecelerateInterpolator(), null, 1500, null);
+                    }
 
-            if (!alwaysFlip && oldAlpha == 1f && (value == mHaloMessageNumber || (value > 99 && mHaloMessageNumber > 99))) return;
-            msgNumberFlipAnimator.animate(ObjectAnimator.ofFloat(mHaloNumberContainer, "rotationY", -180, 0).setDuration(500),
-                        new DecelerateInterpolator(), null);
-        }
-        mHaloMessageNumber = value;
+                    if (!alwaysFlip && oldAlpha == 1f && (value == mHaloMessageNumber || (value > 99 && mHaloMessageNumber > 99))) return;
+                    msgNumberFlipAnimator.animate(ObjectAnimator.ofFloat(mHaloNumberContainer, "rotationY", -180, 0).setDuration(500),
+                                new DecelerateInterpolator(), null);
+                }
+                mHaloMessageNumber = value;
+            }}, delay);
     }
 
     public void setHaloContentAlpha(float value) {
+        mHaloTickerContent.setAlpha(value);
+        mHaloTextViewL.setTextColor(mHaloTextViewL.getTextColors().withAlpha((int)(value * 255)));
+        mHaloTextViewR.setTextColor(mHaloTextViewR.getTextColors().withAlpha((int)(value * 255)));
+        mHaloTickerContent.invalidate();
         mHaloContentAlpha = value;
-        mHaloTextViewL.setAlpha(value);
-        mHaloTextViewR.setAlpha(value);
     }
 
     public float getHaloContentAlpha() {
