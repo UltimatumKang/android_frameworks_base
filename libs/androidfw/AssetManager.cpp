@@ -655,13 +655,6 @@ const ResTable* AssetManager::getResTable(bool required) const
         const_cast<AssetManager*>(this)->loadFileNameCacheLocked();
     mResources = rt = new ResTable();
 
-<<<<<<< HEAD
-    if (rt) {
-        const size_t N = mAssetPaths.size();
-        for (size_t i=0; i<N; i++) {
-            const asset_path& ap = mAssetPaths.itemAt(i);
-            updateResTableFromAssetPath(rt, ap, (void*)(i+1));
-=======
     const size_t N = mAssetPaths.size();
     for (size_t i=0; i<N; i++) {
         Asset* ass = NULL;
@@ -732,7 +725,6 @@ const ResTable* AssetManager::getResTable(bool required) const
         }
         if (idmap != NULL) {
             delete idmap;
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
         }
         MY_TRACE_END();
     }

@@ -1153,18 +1153,11 @@
     <skip />
     <string name="wifi_watchdog_network_disabled" msgid="7904214231651546347">"无法连接到 WLAN"</string>
     <string name="wifi_watchdog_network_disabled_detailed" msgid="5548780776418332675">" 互联网连接状况不佳。"</string>
-<<<<<<< HEAD
     <string name="wifi_tether_configure_ssid_default">安卓热点</string>
-    <string name="wifi_p2p_dialog_title" msgid="97611782659324517">"Wi-Fi Direct"</string>
-    <string name="wifi_p2p_turnon_message" msgid="2909250942299627244">"启动 Wi-Fi Direct。此操作将会关闭 Wi-Fi 客户端/热点。"</string>
-    <string name="wifi_p2p_failed_message" msgid="3763669677935623084">"无法启动 Wi-Fi Direct。"</string>
-    <string name="wifi_p2p_enabled_notification_title" msgid="2068321881673734886">"已启用 Wi-Fi Direct"</string>
-=======
     <string name="wifi_p2p_dialog_title" msgid="97611782659324517">"WLAN Direct"</string>
     <string name="wifi_p2p_turnon_message" msgid="2909250942299627244">"启动 WLAN Direct。此操作将会关闭 WLAN 客户端/热点。"</string>
     <string name="wifi_p2p_failed_message" msgid="3763669677935623084">"无法启动 WLAN Direct。"</string>
     <string name="wifi_p2p_enabled_notification_title" msgid="2068321881673734886">"已启用 WLAN Direct"</string>
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
     <string name="wifi_p2p_enabled_notification_message" msgid="1638949953993894335">"通过触摸进行设置"</string>
     <string name="accept" msgid="1645267259272829559">"接受"</string>
     <string name="decline" msgid="2112225451706137894">"拒绝"</string>
