@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * Copyright (C) 2011, 2012 Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +32,6 @@ import android.net.http.SslCertificate;
 import android.net.http.SslError;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemProperties;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
@@ -58,8 +56,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.harmony.security.provider.cert.X509CertImpl;
-import org.apache.harmony.xnet.provider.jsse.OpenSSLDSAPrivateKey;
-import org.apache.harmony.xnet.provider.jsse.OpenSSLRSAPrivateKey;
+import org.apache.harmony.xnet.provider.jsse.OpenSSLKey;
+import org.apache.harmony.xnet.provider.jsse.OpenSSLKeyHolder;
 
 class BrowserFrame extends Handler {
 
@@ -224,11 +222,10 @@ class BrowserFrame extends Handler {
             // set WebCore native cache size
             ActivityManager am = (ActivityManager) context
                     .getSystemService(Context.ACTIVITY_SERVICE);
-            int defCacheSize = am.getMemoryClass() > 16 ?
-                8 * 1024 * 1024 : 4 * 1024 * 1024;
-            int cacheSize = SystemProperties.getInt("net.webkit.cache.size", defCacheSize);
-            if ((cacheSize < 0) || (cacheSize > (100 * 1024 * 1024))) {
-                cacheSize = defCacheSize;
+            if (am.getMemoryClass() > 16) {
+                sJavaBridge.setCacheSize(8 * 1024 * 1024);
+            } else {
+                sJavaBridge.setCacheSize(4 * 1024 * 1024);
             }
             // create CookieSyncManager with current Context
             CookieSyncManager.createInstance(appContext);
@@ -502,10 +499,15 @@ class BrowserFrame extends Handler {
                             .getCurrentItem();
                     if (item != null) {
                         WebAddress uri = new WebAddress(item.getUrl());
-                        String schemePlusHost = uri.getScheme() + uri.getHost();
+                        String schemePlusHost = uri.getScheme() + SCHEME_HOST_DELIMITER +
+                                uri.getHost();
                         String[] up =
                                 WebViewDatabaseClassic.getInstance(mContext)
                                         .getUsernamePassword(schemePlusHost);
+                        if (up == null) { // no row found, try again using the legacy method
+                            schemePlusHost = uri.getScheme() + uri.getHost();
+                            up = mDatabase.getUsernamePassword(schemePlusHost);
+                        }
                         if (up != null && up[0] != null) {
                             setUsernamePassword(up[0], up[1]);
                         }
@@ -1102,16 +1104,12 @@ class BrowserFrame extends Handler {
         }
 
         SslErrorHandler handler = new SslErrorHandler() {
-            boolean isCanceled = false;
             @Override
             public void proceed() {
                 SslCertLookupTable.getInstance().setIsAllowed(sslError);
                 post(new Runnable() {
                         public void run() {
-                            if (!isCanceled)
-                            {
-                               nativeSslCertErrorProceed(handle);
-                            }
+                            nativeSslCertErrorProceed(handle);
                         }
                     });
             }
@@ -1119,11 +1117,7 @@ class BrowserFrame extends Handler {
             public void cancel() {
                 post(new Runnable() {
                         public void run() {
-                            if (!isCanceled)
-                            {
-                               nativeSslCertErrorCancel(handle, certError);
-                            }
-                            isCanceled = true;
+                            nativeSslCertErrorCancel(handle, certError);
                         }
                     });
             }
@@ -1143,13 +1137,10 @@ class BrowserFrame extends Handler {
         if (table.IsAllowed(hostAndPort)) {
             // previously allowed
             PrivateKey pkey = table.PrivateKey(hostAndPort);
-            if (pkey instanceof OpenSSLRSAPrivateKey) {
+            if (pkey instanceof OpenSSLKeyHolder) {
+                OpenSSLKey sslKey = ((OpenSSLKeyHolder) pkey).getOpenSSLKey();
                 nativeSslClientCert(handle,
-                                    ((OpenSSLRSAPrivateKey)pkey).getPkeyContext(),
-                                    table.CertificateChain(hostAndPort));
-            } else if (pkey instanceof OpenSSLDSAPrivateKey) {
-                nativeSslClientCert(handle,
-                                    ((OpenSSLDSAPrivateKey)pkey).getPkeyContext(),
+                                    sslKey.getPkeyContext(),
                                     table.CertificateChain(hostAndPort));
             } else {
                 nativeSslClientCert(handle,

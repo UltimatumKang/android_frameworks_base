@@ -1852,16 +1852,6 @@ public abstract class ActivityManagerNative extends Binder implements IActivityM
             return true;
         }
 
-<<<<<<< HEAD
-        case IS_PRIVACY_GUARD_ENABLED_TRANSACTION: {
-            data.enforceInterface(IActivityManager.descriptor);
-            int pid = data.readInt();
-            boolean res = isPrivacyGuardEnabledForProcess(pid);
-            reply.writeNoException();
-            reply.writeInt(res ? 1 : 0);
-            return true;
-        }
-=======
         case GET_TOP_ACTIVITY_EXTRAS_TRANSACTION: {
             data.enforceInterface(IActivityManager.descriptor);
             int requestType = data.readInt();
@@ -1898,7 +1888,15 @@ public abstract class ActivityManagerNative extends Binder implements IActivityM
             return true;
         }
 
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
+        case IS_PRIVACY_GUARD_ENABLED_TRANSACTION: {
+            data.enforceInterface(IActivityManager.descriptor);
+            int pid = data.readInt();
+            boolean res = isPrivacyGuardEnabledForProcess(pid);
+            reply.writeNoException();
+            reply.writeInt(res ? 1 : 0);
+            return true;
+        }
+
         }
 
         return super.onTransact(code, data, reply, flags);
@@ -4275,19 +4273,6 @@ class ActivityManagerProxy implements IActivityManager
         return res;
     }
 
-    public boolean isPrivacyGuardEnabledForProcess(int pid) throws RemoteException {
-        Parcel data = Parcel.obtain();
-        Parcel reply = Parcel.obtain();
-        data.writeInterfaceToken(IActivityManager.descriptor);
-        data.writeInt(pid);
-        mRemote.transact(IS_PRIVACY_GUARD_ENABLED_TRANSACTION, data, reply, 0);
-        reply.readException();
-        int res = reply.readInt();
-        data.recycle();
-        reply.recycle();
-        return res == 1;
-    }
-
     public Bundle getTopActivityExtras(int requestType) throws RemoteException {
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
@@ -4335,6 +4320,19 @@ class ActivityManagerProxy implements IActivityManager
         reply.readException();
         data.recycle();
         reply.recycle();
+    }
+
+    public boolean isPrivacyGuardEnabledForProcess(int pid) throws RemoteException {
+        Parcel data = Parcel.obtain();
+        Parcel reply = Parcel.obtain();
+        data.writeInterfaceToken(IActivityManager.descriptor);
+        data.writeInt(pid);
+        mRemote.transact(IS_PRIVACY_GUARD_ENABLED_TRANSACTION, data, reply, 0);
+        reply.readException();
+        int res = reply.readInt();
+        data.recycle();
+        reply.recycle();
+        return res == 1;
     }
 
     private IBinder mRemote;

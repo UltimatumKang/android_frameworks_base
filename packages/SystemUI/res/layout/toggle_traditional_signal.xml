@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<<<<<<< HEAD:packages/SystemUI/res/layout/toggle_traditional_signal.xml
-<!--
-     Copyright (C) 2012 The Android Open Source Project
-=======
 <!-- Copyright (C) 2013 The Android Open Source Project
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd:packages/SystemUI/res/layout/quick_settings_tile_battery.xml
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.

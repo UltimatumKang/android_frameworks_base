@@ -259,9 +259,6 @@
     <string name="quick_settings_adb_off">ADB sans-fil Off</string>
     <string name="quick_settings_customize_label">Outils</string>
 
-    <string name="status_bar_help_title">"Les notifications s’affichent ici"</string>
-    <string name="status_bar_help_text">"Accédez-y à tout moment en faisant glisser le doigt vers le bas."\n"Répétez l\'opération pour accéder aux commandes du système."</string>
-
     <string name="recents_kill_all_button_text">Tout fermer</string>
     
     <string name="status_bar_recent_floating_item_title">Mode flottant</string>

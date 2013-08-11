@@ -452,8 +452,12 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
 
     private boolean mDockAudioMediaEnabled = true;
 
+    private boolean mForceAnalogDeskDock;
+    private boolean mForceAnalogCarDock;
+
     private int mDockState = Intent.EXTRA_DOCK_STATE_UNDOCKED;
 
+    private boolean mVolumeKeysControlRingStream;
     // Used when safe volume warning message display is requested by setStreamVolume(). In this
     // case, the new requested volume, stream type and device are stored in mPendingVolumeCommand
     // and used later when/if disableSafeMediaVolume() is called.
@@ -2444,6 +2448,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                         if (mMusicActiveMs > UNSAFE_VOLUME_MUSIC_ACTIVE_MS_MAX) {
                             setSafeMediaVolumeEnabled(true);
                             mMusicActiveMs = 0;
+                            displaySafeVolumeWarning();
                         }
                     }
                 }
@@ -4037,10 +4042,10 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                 int config;
                 switch (dockState) {
                     case Intent.EXTRA_DOCK_STATE_DESK:
-                        config = AudioSystem.FORCE_BT_DESK_DOCK;
+                        config = mForceAnalogDeskDock ? AudioSystem.FORCE_ANALOG_DOCK : AudioSystem.FORCE_BT_DESK_DOCK;
                         break;
                     case Intent.EXTRA_DOCK_STATE_CAR:
-                        config = AudioSystem.FORCE_BT_CAR_DOCK;
+                        config = mForceAnalogCarDock ? AudioSystem.FORCE_ANALOG_DOCK : AudioSystem.FORCE_BT_CAR_DOCK;
                         break;
                     case Intent.EXTRA_DOCK_STATE_LE_DESK:
                         config = AudioSystem.FORCE_ANALOG_DOCK;
@@ -4053,7 +4058,14 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                         config = AudioSystem.FORCE_NONE;
                 }
 
-                AudioSystem.setForceUse(AudioSystem.FOR_DOCK, config);
+                // Low end docks have a menu to enable or disable audio
+                // (see mDockAudioMediaEnabled)
+                if (!((dockState == Intent.EXTRA_DOCK_STATE_LE_DESK) ||
+                      ((dockState == Intent.EXTRA_DOCK_STATE_UNDOCKED) &&
+                       (mDockState == Intent.EXTRA_DOCK_STATE_LE_DESK)))) {
+                    AudioSystem.setForceUse(AudioSystem.FOR_DOCK, config);
+                }
+                mDockState = dockState;
             } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED) && noDelayInATwoDP) {
                 state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
                                            BluetoothProfile.STATE_DISCONNECTED);
@@ -4200,6 +4212,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                         0,
                         null,
                         SAFE_VOLUME_CONFIGURE_TIMEOUT_MS);
+                adjustCurrentStreamVolume();
             } else if (action.equals(Intent.ACTION_PACKAGE_REMOVED)
                     || action.equals(Intent.ACTION_PACKAGE_DATA_CLEARED)) {
                 if (!intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) {
@@ -4373,7 +4386,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
 
     private void displaySafeVolumeWarning() {
         if (mUiContext != null && mVolumePanel != null) {
-            mVolumePanel.postDisplaySafeVolumeWarning();
+            mVolumePanel.postDisplaySafeVolumeWarning(0);
         } else {
             mHandler.post(new Runnable() {
                 @Override
@@ -4384,7 +4397,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
 
                     final Context context = mUiContext != null ? mUiContext : mContext;
                     mVolumePanel = new VolumePanel(context, AudioService.this);
-                    mVolumePanel.postDisplaySafeVolumeWarning();
+                    mVolumePanel.postDisplaySafeVolumeWarning(0);
                 }
             });
         }
@@ -6308,7 +6321,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                                 synchronized (mMainRemote) {
                                     if (rccId == mMainRemote.mRccId) {
                                         mMainRemote.mVolume = value;
-                                        mVolumePanel.postHasNewRemotePlaybackInfo();
+                                        hasNewRemotePlaybackInfo();
                                     }
                                 }
                                 break;
@@ -6317,7 +6330,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                                 synchronized (mMainRemote) {
                                     if (rccId == mMainRemote.mRccId) {
                                         mMainRemote.mVolumeMax = value;
-                                        mVolumePanel.postHasNewRemotePlaybackInfo();
+                                        hasNewRemotePlaybackInfo();
                                     }
                                 }
                                 break;
@@ -6326,10 +6339,10 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                                 synchronized (mMainRemote) {
                                     if (rccId == mMainRemote.mRccId) {
                                         mMainRemote.mVolumeHandling = value;
-                                        mVolumePanel.postHasNewRemotePlaybackInfo();
+                                        hasNewRemotePlaybackInfo();
                                     }
+                                    break;
                                 }
-                                break;
                             case RemoteControlClient.PLAYBACKINFO_USES_STREAM:
                                 rcse.mPlaybackStream = value;
                                 break;
@@ -6863,6 +6876,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                     (mStreamVolumeAlias[streamType] == AudioSystem.STREAM_MUSIC) &&
                     ((device & mSafeMediaVolumeDevices) != 0) &&
                     (index > mSafeMediaVolumeIndex)) {
+                displaySafeVolumeWarning();
                 return false;
             }
             return true;

@@ -1360,7 +1360,6 @@ public class TextToSpeech {
     @Deprecated
     public int setOnUtteranceCompletedListener(final OnUtteranceCompletedListener listener) {
         mUtteranceProgressListener = UtteranceProgressListener.from(listener);
-        mCallback.setUtteranceProgressListener(mUtteranceProgressListener);
         return TextToSpeech.SUCCESS;
     }
 
@@ -1376,7 +1375,6 @@ public class TextToSpeech {
      */
     public int setOnUtteranceProgressListener(UtteranceProgressListener listener) {
         mUtteranceProgressListener = listener;
-        mCallback.setUtteranceProgressListener(mUtteranceProgressListener);
         return TextToSpeech.SUCCESS;
     }
 

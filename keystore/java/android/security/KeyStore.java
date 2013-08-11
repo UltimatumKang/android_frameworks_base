@@ -16,17 +16,9 @@
 
 package android.security;
 
-import android.net.LocalSocketAddress;
-import android.net.LocalSocket;
-
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UTFDataFormatException;
-import java.nio.charset.Charsets;
-import java.nio.charset.ModifiedUtf8;
-import java.util.ArrayList;
-import java.util.Date;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.util.Log;
 
 /**
  * @hide This should not be made public in its present form because it
@@ -34,6 +26,7 @@ import java.util.Date;
  * preclude the use of hardware crypto.
  */
 public class KeyStore {
+    private static final String TAG = "KeyStore";
 
     // ResponseCodes
     public static final int NO_ERROR = 1;
@@ -57,20 +50,30 @@ public class KeyStore {
     // States
     public enum State { UNLOCKED, LOCKED, UNINITIALIZED };
 
-    private static final LocalSocketAddress sAddress = new LocalSocketAddress(
-            "keystore", LocalSocketAddress.Namespace.RESERVED);
-
     private int mError = NO_ERROR;
 
-    private KeyStore() {}
+    private final IKeystoreService mBinder;
+
+    private KeyStore(IKeystoreService binder) {
+        mBinder = binder;
+    }
 
     public static KeyStore getInstance() {
-        return new KeyStore();
+        IKeystoreService keystore = IKeystoreService.Stub.asInterface(ServiceManager
+                .getService("android.security.keystore"));
+        return new KeyStore(keystore);
     }
 
     public State state() {
-        execute('t');
-        switch (mError) {
+        final int ret;
+        try {
+            ret = mBinder.test();
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            throw new AssertionError(e);
+        }
+
+        switch (ret) {
             case NO_ERROR: return State.UNLOCKED;
             case LOCKED: return State.LOCKED;
             case UNINITIALIZED: return State.UNINITIALIZED;
@@ -83,12 +86,12 @@ public class KeyStore {
     }
 
     public byte[] get(String key) {
-        return get(getKeyBytes(key));
-    }
-
-    private boolean put(byte[] key, byte[] value) {
-        execute('i', key, value);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.get(key);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return null;
+        }
     }
 
     public boolean put(String key, byte[] value, int uid, int flags) {
@@ -133,11 +136,6 @@ public class KeyStore {
             Log.w(TAG, "Cannot connect to keystore", e);
             return null;
         }
-        String[] strings = new String[values.length];
-        for (int i = 0; i < values.length; ++i) {
-            strings[i] = toKeyString(values[i]);
-        }
-        return strings;
     }
 
     public String[] saw(String prefix) {
@@ -145,41 +143,49 @@ public class KeyStore {
     }
 
     public boolean reset() {
-        execute('r');
-        return mError == NO_ERROR;
-    }
-
-    private boolean password(byte[] password) {
-        execute('p', password);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.reset() == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean password(String password) {
-        return password(getPasswordBytes(password));
+        try {
+            return mBinder.password(password) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean lock() {
-        execute('l');
-        return mError == NO_ERROR;
-    }
-
-    private boolean unlock(byte[] password) {
-        execute('u', password);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.lock() == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean unlock(String password) {
-        return unlock(getPasswordBytes(password));
+        try {
+            mError = mBinder.unlock(password);
+            return mError == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean isEmpty() {
-        execute('z');
-        return mError == KEY_NOT_FOUND;
-    }
-
-    private boolean generate(byte[] key) {
-        execute('a', key);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.zero() == KEY_NOT_FOUND;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean generate(String key, int uid, int flags) {
@@ -201,12 +207,12 @@ public class KeyStore {
     }
 
     public byte[] getPubkey(String key) {
-        return getPubkey(getKeyBytes(key));
-    }
-
-    private boolean delKey(byte[] key) {
-        execute('k', key);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.get_pubkey(key);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return null;
+        }
     }
 
     public boolean delKey(String key, int uid) {
@@ -223,43 +229,39 @@ public class KeyStore {
     }
 
     public byte[] sign(String key, byte[] data) {
-        return sign(getKeyBytes(key), data);
-    }
-
-    private boolean verify(byte[] keyName, byte[] data, byte[] signature) {
-        execute('v', keyName, data, signature);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.sign(key, data);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return null;
+        }
     }
 
     public boolean verify(String key, byte[] data, byte[] signature) {
-        return verify(getKeyBytes(key), data, signature);
-    }
-
-    private boolean grant(byte[] key, byte[] uid) {
-        execute('x', key, uid);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.verify(key, data, signature) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean grant(String key, int uid) {
-         return grant(getKeyBytes(key), getUidBytes(uid));
-    }
-
-    private boolean ungrant(byte[] key, byte[] uid) {
-        execute('y', key, uid);
-        return mError == NO_ERROR;
+        try {
+            return mBinder.grant(key, uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
+        }
     }
 
     public boolean ungrant(String key, int uid) {
-        return ungrant(getKeyBytes(key), getUidBytes(uid));
-    }
-
-    private long getmtime(byte[] key) {
-        final ArrayList<byte[]> values = execute('c', key);
-        if (values == null || values.isEmpty()) {
-            return -1L;
+        try {
+            return mBinder.ungrant(key, uid) == NO_ERROR;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return false;
         }
-
-        return Long.parseLong(new String(values.get(0))) * 1000L;
     }
 
     /**
@@ -267,71 +269,17 @@ public class KeyStore {
      * epoch. Will return -1L if the key could not be found or other error.
      */
     public long getmtime(String key) {
-        return getmtime(getKeyBytes(key));
-    }
-
-    public int getLastError() {
-        return mError;
-    }
-
-    private ArrayList<byte[]> execute(int code, byte[]... parameters) {
-        mError = PROTOCOL_ERROR;
-
-        for (byte[] parameter : parameters) {
-            if (parameter == null || parameter.length > 65535) {
-                return null;
-            }
-        }
-
-        LocalSocket socket = new LocalSocket();
         try {
-            socket.connect(sAddress);
-
-            OutputStream out = socket.getOutputStream();
-            out.write(code);
-            for (byte[] parameter : parameters) {
-                out.write(parameter.length >> 8);
-                out.write(parameter.length);
-                out.write(parameter);
-            }
-            out.flush();
-            socket.shutdownOutput();
-
-            InputStream in = socket.getInputStream();
-            if ((code = in.read()) != NO_ERROR) {
-                if (code != -1) {
-                    mError = code;
-                }
-                return null;
+            final long millis = mBinder.getmtime(key);
+            if (millis == -1L) {
+                return -1L;
             }
 
-            ArrayList<byte[]> values = new ArrayList<byte[]>();
-            while (true) {
-                int i, j;
-                if ((i = in.read()) == -1) {
-                    break;
-                }
-                if ((j = in.read()) == -1) {
-                    return null;
-                }
-                byte[] value = new byte[i << 8 | j];
-                for (i = 0; i < value.length; i += j) {
-                    if ((j = in.read(value, i, value.length - i)) == -1) {
-                        return null;
-                    }
-                }
-                values.add(value);
-            }
-            mError = NO_ERROR;
-            return values;
-        } catch (IOException e) {
-            // ignore
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {}
+            return millis * 1000L;
+        } catch (RemoteException e) {
+            Log.w(TAG, "Cannot connect to keystore", e);
+            return -1L;
         }
-        return null;
     }
 
     public boolean duplicate(String srcKey, int srcUid, String destKey, int destUid) {

@@ -1173,7 +1173,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     triggerVirtualKeypress(KeyEvent.KEYCODE_SEARCH);
                     break;
                 case KEY_ACTION_KILL_APP:
-                    mHandler.postDelayed(mBackLongPress, mBackKillTimeout - 500);
+                    mHandler.postDelayed(mBackLongPress, mBackKillTimeout - 1000);
                     break;
                 case KEY_ACTION_LAST_APP:
                     toggleLastApp();
@@ -1259,6 +1259,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             Slog.e(TAG, "RemoteException when showing recent apps", e);
             // re-acquire status bar service next time it is needed.
             mStatusBarService = null;
+        }
+    }
 
     private void handleLongPressOnHome() {
         if (mLongPressOnHomeBehavior != LONG_PRESS_HOME_NOTHING) {
@@ -2753,7 +2755,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int[] WINDOW_TYPES_WHERE_HOME_DOESNT_WORK = {
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
-        };
+    };
 
     /** {@inheritDoc} */
     @Override
