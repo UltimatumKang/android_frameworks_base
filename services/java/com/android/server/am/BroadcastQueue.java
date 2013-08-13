@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.AppGlobals;
+import android.app.AppOpsManager;
 import android.content.ComponentName;
 import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -119,6 +119,11 @@ public class BroadcastQueue {
      * waiting for this one.
      */
     BroadcastRecord mPendingBroadcast = null;
+
+    /**
+     * Intent broadcast that we are currently processing
+     */
+    BroadcastRecord mCurrentBroadcast = null;
 
     /**
      * The receiver index that is pending, to restart the broadcast if needed.
@@ -410,6 +415,7 @@ public class BroadcastQueue {
                 skip = true;
             }
         }
+
         try {
             if (!skip && mService.isFilteredByPrivacyGuard(r.intent.getAction()) &&
                     ActivityManagerNative.getDefault().isPrivacyGuardEnabledForProcess(filter.receiverList.pid)) {
@@ -423,6 +429,18 @@ public class BroadcastQueue {
         } catch (RemoteException e) {
             // nothing
         }
+
+        if (r.appOp != AppOpsManager.OP_NONE) {
+            int mode = mService.mAppOpsService.checkOperation(r.appOp,
+                    filter.receiverList.uid, filter.packageName);
+            if (mode != AppOpsManager.MODE_ALLOWED) {
+                if (DEBUG_BROADCAST)  Slog.v(TAG,
+                        "App op " + r.appOp + " not allowed for broadcast to uid "
+                        + filter.receiverList.uid + " pkg " + filter.packageName);
+                skip = true;
+            }
+        }
+
         if (!skip) {
             // If this is not being sent as an ordered broadcast, then we
             // don't want to touch the fields that keep track of the current
@@ -469,6 +487,10 @@ public class BroadcastQueue {
         }
     }
 
+    BroadcastRecord getProcessingBroadcast() {
+        return mCurrentBroadcast;
+    }
+
     final void processNextBroadcast(boolean fromMsg) {
         synchronized(mService) {
             BroadcastRecord r;
@@ -489,6 +511,7 @@ public class BroadcastQueue {
                 r = mParallelBroadcasts.remove(0);
                 r.dispatchTime = SystemClock.uptimeMillis();
                 r.dispatchClockTime = System.currentTimeMillis();
+                mCurrentBroadcast = r;
                 final int N = r.receivers.size();
                 if (DEBUG_BROADCAST_LIGHT) Slog.v(TAG, "Processing parallel broadcast ["
                         + mQueueName + "] " + r);
@@ -500,6 +523,7 @@ public class BroadcastQueue {
                     deliverToRegisteredReceiverLocked(r, (BroadcastFilter)target, false);
                 }
                 addBroadcastToHistoryLocked(r);
+                mCurrentBroadcast = null;
                 if (DEBUG_BROADCAST_LIGHT) Slog.v(TAG, "Done with parallel broadcast ["
                         + mQueueName + "] " + r);
             }
@@ -549,6 +573,7 @@ public class BroadcastQueue {
                     return;
                 }
                 r = mOrderedBroadcasts.get(0);
+                mCurrentBroadcast = r;
                 boolean forceReceive = false;
 
                 // Ensure that even if something goes awry with the timeout
@@ -621,6 +646,7 @@ public class BroadcastQueue {
                     // ... and on to the next...
                     addBroadcastToHistoryLocked(r);
                     mOrderedBroadcasts.remove(0);
+                    mCurrentBroadcast = null;
                     r = null;
                     looped = true;
                     continue;
@@ -716,6 +742,17 @@ public class BroadcastQueue {
                             + " requires " + r.requiredPermission
                             + " due to sender " + r.callerPackage
                             + " (uid " + r.callingUid + ")");
+                    skip = true;
+                }
+            }
+            if (r.appOp != AppOpsManager.OP_NONE) {
+                int mode = mService.mAppOpsService.checkOperation(r.appOp,
+                        info.activityInfo.applicationInfo.uid, info.activityInfo.packageName);
+                if (mode != AppOpsManager.MODE_ALLOWED) {
+                    if (DEBUG_BROADCAST)  Slog.v(TAG,
+                            "App op " + r.appOp + " not allowed for broadcast to uid "
+                            + info.activityInfo.applicationInfo.uid + " pkg "
+                            + info.activityInfo.packageName);
                     skip = true;
                 }
             }
@@ -1071,6 +1108,9 @@ public class BroadcastQueue {
                 pw.print("  #"); pw.print(i); pw.print(": "); pw.println(r);
                 pw.print("    ");
                 pw.println(r.intent.toShortString(false, true, true, false));
+                if (r.targetComp != null && r.targetComp != r.intent.getComponent()) {
+                    pw.print("    targetComp: "); pw.println(r.targetComp.toShortString());
+                }
                 Bundle bundle = r.intent.getExtras();
                 if (bundle != null) {
                     pw.print("    extras: "); pw.println(bundle.toString());

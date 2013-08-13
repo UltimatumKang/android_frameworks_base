@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.KeyManagementException;
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -88,6 +89,7 @@ public class SSLCertificateSocketFactory extends SSLSocketFactory {
     private TrustManager[] mTrustManagers = null;
     private KeyManager[] mKeyManagers = null;
     private byte[] mNpnProtocols = null;
+    private PrivateKey mChannelIdPrivateKey = null;
 
     private final int mHandshakeTimeoutMillis;
     private final SSLClientSessionCache mSessionCache;
@@ -316,6 +318,20 @@ public class SSLCertificateSocketFactory extends SSLSocketFactory {
         // Clear out any existing cached factories since configurations have changed.
         mSecureFactory = null;
         mInsecureFactory = null;
+    }
+
+    /**
+     * Sets the private key to be used for TLS Channel ID by connections made by this
+     * factory.
+     *
+     * @param privateKey private key (enables TLS Channel ID) or {@code null} for no key (disables
+     *        TLS Channel ID). The private key has to be an Elliptic Curve (EC) key based on the
+     *        NIST P-256 curve (aka SECG secp256r1 or ANSI X9.62 prime256v1).
+     *
+     * @hide
+     */
+    public void setChannelIdPrivateKey(PrivateKey privateKey) {
+        mChannelIdPrivateKey = privateKey;
     }
 
     /**

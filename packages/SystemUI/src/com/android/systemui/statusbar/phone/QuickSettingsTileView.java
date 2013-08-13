@@ -31,6 +31,8 @@ import android.widget.RelativeLayout;
 import com.android.systemui.R;
 
 import java.util.Random;
+import android.view.View;
+import android.widget.FrameLayout;
 
 /**
  *
@@ -39,7 +41,6 @@ public class QuickSettingsTileView extends RelativeLayout {
 
     private int mColSpan;
     private int mRowSpan;
-    private int mCellWidth;
 
     private boolean mAttached = false;
 
