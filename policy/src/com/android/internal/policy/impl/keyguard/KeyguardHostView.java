@@ -78,6 +78,7 @@ public class KeyguardHostView extends KeyguardViewBase {
     static final int TRANSPORT_VISIBLE = 2;
 
     private int mTransportState = TRANSPORT_GONE;
+    private boolean mTransportShouldBeVisible;
 
     // Use this to debug all of keyguard
     public static boolean DEBUG = KeyguardViewMediator.DEBUG;
@@ -156,10 +157,9 @@ public class KeyguardHostView extends KeyguardViewBase {
     public KeyguardHostView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mLockPatternUtils = new LockPatternUtils(context);
-        mUserId = mLockPatternUtils.getCurrentUser();
+
         mAppWidgetHost = new AppWidgetHost(
                 context, APPWIDGET_HOST_ID, mOnClickHandler, Looper.myLooper());
-        mAppWidgetHost.setUserId(mUserId);
 
         if (DEBUG) Log.e(TAG, "KeyguardHostView()");
 
@@ -239,36 +239,6 @@ public class KeyguardHostView extends KeyguardViewBase {
             mCleanupAppWidgetsOnBootCompleted = true;
             return;
         }
-
-        // Clean up appWidgetIds that are bound to lockscreen, but not actually used
-        // This is only to clean up after another bug: we used to not call
-        // deleteAppWidgetId when a user manually deleted a widget in keyguard. This code
-        // shouldn't have to run more than once per user. AppWidgetProviders rely on callbacks
-        // that are triggered by deleteAppWidgetId, which is why we're doing this
-        int[] appWidgetIdsInKeyguardSettings = mLockPatternUtils.getAppWidgets();
-        int[] appWidgetIdsBoundToHost = mAppWidgetHost.getAppWidgetIds();
-        int fallbackWidgetId = mLockPatternUtils.getFallbackAppWidgetId();
-        for (int i = 0; i < appWidgetIdsBoundToHost.length; i++) {
-            int appWidgetId = appWidgetIdsBoundToHost[i];
-            if (!contains(appWidgetIdsInKeyguardSettings, appWidgetId)) {
-                if (appWidgetId == fallbackWidgetId) {
-                    if (widgetsDisabledByDpm()) {
-                        // Ignore attempts to delete the fallback widget when widgets
-                        // are disabled
-                        continue;
-                    } else {
-                        // Reset fallback widget id in the event that widgets have been
-                        // enabled, and fallback widget is being deleted
-                        mLockPatternUtils.writeFallbackAppWidgetId(
-                                AppWidgetManager.INVALID_APPWIDGET_ID);
-                    }
-                }
-                Log.d(TAG, "Found a appWidgetId that's not being used by keyguard, deleting id "
-                        + appWidgetId);
-                mAppWidgetHost.deleteAppWidgetId(appWidgetId);
-            }
-        }
-
         if (!mSafeModeEnabled && !widgetsDisabledByDpm()) {
             // Clean up appWidgetIds that are bound to lockscreen, but not actually used
             // This is only to clean up after another bug: we used to not call
@@ -277,9 +247,22 @@ public class KeyguardHostView extends KeyguardViewBase {
             // that are triggered by deleteAppWidgetId, which is why we're doing this
             int[] appWidgetIdsInKeyguardSettings = mLockPatternUtils.getAppWidgets();
             int[] appWidgetIdsBoundToHost = mAppWidgetHost.getAppWidgetIds();
+            int fallbackWidgetId = mLockPatternUtils.getFallbackAppWidgetId();
             for (int i = 0; i < appWidgetIdsBoundToHost.length; i++) {
                 int appWidgetId = appWidgetIdsBoundToHost[i];
                 if (!contains(appWidgetIdsInKeyguardSettings, appWidgetId)) {
+                    if (appWidgetId == fallbackWidgetId) {
+                        if (widgetsDisabledByDpm()) {
+                            // Ignore attempts to delete the fallback widget when widgets
+                            // are disabled
+                            continue;
+                        } else {
+                            // Reset fallback widget id in the event that widgets have been
+                            // enabled, and fallback widget is being deleted
+                            mLockPatternUtils.writeFallbackAppWidgetId(
+                                    AppWidgetManager.INVALID_APPWIDGET_ID);
+                        }
+                    }
                     Log.d(TAG, "Found a appWidgetId that's not being used by keyguard, deleting id "
                             + appWidgetId);
                     mAppWidgetHost.deleteAppWidgetId(appWidgetId);
@@ -438,6 +421,9 @@ public class KeyguardHostView extends KeyguardViewBase {
         mViewStateManager.setSecurityViewContainer(mSecurityViewContainer);
 
         setBackButtonEnabled(false);
+
+        mTransportShouldBeVisible = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.LOCKSCREEN_MUSIC_CONTROLS, 1, UserHandle.USER_CURRENT) != 0;
 
         updateBackground();
         addDefaultWidgets();
@@ -1602,7 +1588,7 @@ public class KeyguardHostView extends KeyguardViewBase {
         final boolean showing = getWidgetPosition(R.id.keyguard_transport_control) != -1;
         final boolean visible = state == TRANSPORT_VISIBLE;
         final boolean shouldBeVisible = state == TRANSPORT_INVISIBLE && isMusicPlaying(state);
-        if (!showing && (visible || shouldBeVisible)) {
+        if (!showing && mTransportShouldBeVisible && (visible || shouldBeVisible)) {
             if (DEBUGXPORT) Log.v(TAG, "add transport");
             // insert to left of camera if it exists, otherwise after right-most widget
             int lastWidget = mAppWidgetContainer.getChildCount() - 1;
@@ -1612,7 +1598,7 @@ public class KeyguardHostView extends KeyguardViewBase {
                         lastWidget : lastWidget + 1;
             }
             mAppWidgetContainer.addWidget(getOrCreateTransportControl(), position);
-        } else if (showing && state == TRANSPORT_GONE) {
+        } else if (showing && (state == TRANSPORT_GONE || !mTransportShouldBeVisible)) {
             if (DEBUGXPORT) Log.v(TAG, "remove transport");
             mAppWidgetContainer.removeWidget(getOrCreateTransportControl());
             mTransportControl = null;

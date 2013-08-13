@@ -20,11 +20,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageParser;
 import android.content.pm.Signature;
 import android.os.Environment;
-<<<<<<< HEAD
 import android.os.SystemProperties;
 import android.text.TextUtils;
-=======
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
 import android.util.Slog;
 import android.util.Xml;
 
@@ -37,12 +34,9 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import java.util.HashMap;
-<<<<<<< HEAD
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
-=======
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -54,7 +48,6 @@ import org.xmlpull.v1.XmlPullParserException;
 public final class SELinuxMMAC {
 
     private static final String TAG = "SELinuxMMAC";
-<<<<<<< HEAD
     private static final String MMAC_DENY = "MMAC_DENIAL:";
     private static final String MMAC_ENFORCE_PROPERTY = "persist.mmac.enforce";
     private static final boolean DEBUG_POLICY = true;
@@ -71,34 +64,12 @@ public final class SELinuxMMAC {
     // Locations of potential install policy files.
     private static final File[] INSTALL_POLICY_FILE = {
         new File(Environment.getDataDirectory(), "security/mac_permissions.xml"),
-=======
-
-    private static final boolean DEBUG_POLICY = false;
-    private static final boolean DEBUG_POLICY_INSTALL = DEBUG_POLICY || false;
-
-    // Signature seinfo values read from policy.
-    private static final HashMap<Signature, String> sSigSeinfo =
-        new HashMap<Signature, String>();
-
-    // Package name seinfo values read from policy.
-    private static final HashMap<String, String> sPackageSeinfo =
-        new HashMap<String, String>();
-
-    // Locations of potential install policy files.
-    private static final File[] INSTALL_POLICY_FILE = {
-        new File(Environment.getDataDirectory(), "system/mac_permissions.xml"),
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
         new File(Environment.getRootDirectory(), "etc/security/mac_permissions.xml"),
         null};
 
     private static void flushInstallPolicy() {
-<<<<<<< HEAD
         SIG_POLICY.clear();
         PKG_POLICY.clear();
-=======
-        sSigSeinfo.clear();
-        sPackageSeinfo.clear();
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
     }
 
     /**
@@ -112,7 +83,6 @@ public final class SELinuxMMAC {
     }
 
     /**
-<<<<<<< HEAD
      * Returns the current status of MMAC enforcing mode.
      * @param none
      * @return boolean indicating whether or not the device is in enforcing mode.
@@ -130,8 +100,6 @@ public final class SELinuxMMAC {
     }
 
     /**
-=======
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
      * Parses an MMAC install policy given as an argument.
      * @param File object representing the path of the policy.
      * @return boolean indicating whether the install policy was correctly parsed.
@@ -156,7 +124,6 @@ public final class SELinuxMMAC {
         }
 
         if (policyFile == null) {
-<<<<<<< HEAD
             Slog.d(TAG, "MMAC install disabled.");
             return false;
         }
@@ -166,13 +133,6 @@ public final class SELinuxMMAC {
         boolean enforcing = getEnforcingMode();
         String mode = enforcing ? "enforcing" : "permissive";
         Slog.d(TAG, "MMAC install starting in " + mode + " mode.");
-=======
-            Slog.d(TAG, "No policy file found. All seinfo values will be null.");
-            return false;
-        }
-
-        Slog.d(TAG, "Using install policy file " + policyFiles[i].getPath());
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
 
         flushInstallPolicy();
 
@@ -205,7 +165,6 @@ public final class SELinuxMMAC {
                         XmlUtils.skipCurrentTag(parser);
                         continue;
                     }
-<<<<<<< HEAD
 
                     if (signature == null) {
                         Slog.w(TAG, "<signer> with null signature at "
@@ -240,24 +199,6 @@ public final class SELinuxMMAC {
 
                         // The 'null' signature is the default seinfo value
                         SIG_POLICY.put(null, type);
-=======
-                    String seinfo = readSeinfoTag(parser);
-                    if (seinfo != null) {
-                        if (DEBUG_POLICY_INSTALL)
-                            Slog.i(TAG, "<signer> tag: (" + cert + ") assigned seinfo="
-                                   + seinfo);
-
-                        sSigSeinfo.put(signature, seinfo);
-                    }
-                } else if ("default".equals(tagName)) {
-                    String seinfo = readSeinfoTag(parser);
-                    if (seinfo != null) {
-                        if (DEBUG_POLICY_INSTALL)
-                            Slog.i(TAG, "<default> tag assigned seinfo=" + seinfo);
-
-                        // The 'null' signature is the default seinfo value
-                        sSigSeinfo.put(null, seinfo);
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
                     }
                 } else if ("package".equals(tagName)) {
                     String pkgName = parser.getAttributeValue(null, "name");
@@ -267,7 +208,6 @@ public final class SELinuxMMAC {
                         XmlUtils.skipCurrentTag(parser);
                         continue;
                     }
-<<<<<<< HEAD
                     InstallPolicy type = determineInstallPolicyType(parser, false);
                     if (type != null) {
                         if (DEBUG_POLICY_INSTALL)
@@ -275,15 +215,6 @@ public final class SELinuxMMAC {
                                    ") assigned " + type);
 
                         PKG_POLICY.put(pkgName, type);
-=======
-                    String seinfo = readSeinfoTag(parser);
-                    if (seinfo != null) {
-                        if (DEBUG_POLICY_INSTALL)
-                            Slog.i(TAG, "<package> tag: (" + pkgName +
-                                   ") assigned seinfo=" + seinfo);
-
-                        sPackageSeinfo.put(pkgName, seinfo);
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
                     }
                 } else {
                     XmlUtils.skipCurrentTag(parser);
@@ -303,7 +234,6 @@ public final class SELinuxMMAC {
         return true;
     }
 
-<<<<<<< HEAD
     private static InstallPolicy determineInstallPolicyType(XmlPullParser parser,
                                                             boolean notInsidePackageTag) throws
             IOException, XmlPullParserException {
@@ -316,13 +246,6 @@ public final class SELinuxMMAC {
         int type;
         int outerDepth = parser.getDepth();
         boolean allowAll = false;
-=======
-    private static String readSeinfoTag(XmlPullParser parser) throws
-            IOException, XmlPullParserException {
-
-        int type;
-        int outerDepth = parser.getDepth();
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
         String seinfo = null;
         while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
                && (type != XmlPullParser.END_TAG
@@ -341,7 +264,6 @@ public final class SELinuxMMAC {
                     Slog.w(TAG, "<seinfo> without valid value at "
                            + parser.getPositionDescription());
                 }
-<<<<<<< HEAD
             } else if ("allow-permission".equals(tagName)) {
                 String permName = parser.getAttributeValue(null, "name");
                 if (permName != null) {
@@ -529,12 +451,6 @@ public final class SELinuxMMAC {
         public String toString() {
             return "deny-all";
         }
-=======
-            }
-            XmlUtils.skipCurrentTag(parser);
-        }
-        return seinfo;
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
     }
 
     /**
@@ -560,7 +476,6 @@ public final class SELinuxMMAC {
     }
 
     /**
-<<<<<<< HEAD
      * Detemines if the package passes policy. If the package does pass
      * policy checks then an seinfo label is also assigned to the package.
      * @param PackageParser.Package object representing the package
@@ -568,32 +483,11 @@ public final class SELinuxMMAC {
      * @return boolean Indicates whether the package passed policy.
      */
     public static boolean passInstallPolicyChecks(PackageParser.Package pkg) {
-=======
-     * Labels a package based on an seinfo tag from install policy.
-     * The label is attached to the ApplicationInfo instance of the package.
-     * @param PackageParser.Package object representing the package
-     *         to labeled.
-     * @return String holding the value of the seinfo label that was assigned.
-     *         Value may be null which indicates no seinfo label was assigned.
-     */
-    public static void assignSeinfoValue(PackageParser.Package pkg) {
-
-        /*
-         * Non system installed apps should be treated the same. This
-         * means that any post-loaded apk will be assigned the default
-         * tag, if one exists in the policy, else null, without respect
-         * to the signing key.
-         */
-        if (((pkg.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0) ||
-            ((pkg.applicationInfo.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)) {
-
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
             // We just want one of the signatures to match.
             for (Signature s : pkg.mSignatures) {
                 if (s == null)
                     continue;
 
-<<<<<<< HEAD
                 // Check for a non default signature policy.
                 if (SIG_POLICY.containsKey(s)) {
                     InstallPolicy policy = SIG_POLICY.get(s);
@@ -637,33 +531,5 @@ public final class SELinuxMMAC {
 
         // If we get here it's because this package had no policy.
         return false;
-=======
-                if (sSigSeinfo.containsKey(s)) {
-                    String seinfo = pkg.applicationInfo.seinfo = sSigSeinfo.get(s);
-                    if (DEBUG_POLICY_INSTALL)
-                        Slog.i(TAG, "package (" + pkg.packageName +
-                               ") labeled with seinfo=" + seinfo);
-
-                    return;
-                }
-            }
-
-            // Check for seinfo labeled by package.
-            if (sPackageSeinfo.containsKey(pkg.packageName)) {
-                String seinfo = pkg.applicationInfo.seinfo = sPackageSeinfo.get(pkg.packageName);
-                if (DEBUG_POLICY_INSTALL)
-                    Slog.i(TAG, "package (" + pkg.packageName +
-                           ") labeled with seinfo=" + seinfo);
-                return;
-            }
-        }
-
-        // If we have a default seinfo value then great, otherwise
-        // we set a null object and that is what we started with.
-        String seinfo = pkg.applicationInfo.seinfo = sSigSeinfo.get(null);
-        if (DEBUG_POLICY_INSTALL)
-            Slog.i(TAG, "package (" + pkg.packageName +
-                   ") labeled with seinfo=" + (seinfo == null ? "null" : seinfo));
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
     }
 }

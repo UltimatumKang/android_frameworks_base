@@ -4806,6 +4806,13 @@ public final class Settings {
         public static final String LOCKSCREEN_TARGETS = "lockscreen_targets";
 
         /**
+        * Whether music controls should be shown on the lockscreen if a supporting
+        * music player is active.
+        * @hide
+        */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS = "lockscreen_music_controls";
+
+        /**
          * Whether to minimize lockscreen challenge on screen turned on
          * @hide
          */

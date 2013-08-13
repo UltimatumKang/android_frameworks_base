@@ -43,10 +43,8 @@ import android.util.Slog;
  */
 public abstract class WindowOrientationListener {
     private static final String TAG = "WindowOrientationListener";
-    private static final boolean LOG = SystemProperties.getBoolean( "debug.orientation.log", false);
-    private static final float MAGNITUDE_THRESHOLD = ((float)SystemProperties.getLong( "orientation.magnitude.threshold", 0))/1000.0f;
-
-
+    private static final boolean LOG = SystemProperties.getBoolean(
+            "debug.orientation.log", false);
 
     private static final boolean USE_GRAVITY_SENSOR = false;
 
@@ -66,12 +64,8 @@ public abstract class WindowOrientationListener {
      * @param context for the WindowOrientationListener.
      * @param handler Provides the Looper for receiving sensor updates.
      */
-    public WindowOrientationListener(Context context) {
-        this(context, SensorManager.SENSOR_DELAY_UI);
-        boolean nonPolling = context.getResources().getBoolean(
-                com.android.internal.R.bool.config_nonPollingWindowOrientation);
-        if (nonPolling)
-            mRate = SensorManager.SENSOR_DELAY_NOPOLL;
+    public WindowOrientationListener(Context context, Handler handler) {
+        this(context, handler, SensorManager.SENSOR_DELAY_UI);
     }
     
     /**

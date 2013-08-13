@@ -3384,6 +3384,8 @@ public class DevicePolicyManagerService extends IDevicePolicyManager.Stub {
                 return false;
             }
             return true;
+        }
+    }
 
     private void enableIfNecessary(String packageName, int userId) {
         try {

@@ -62,14 +62,10 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.provider.Settings;
-import android.util.DisplayMetrics;
 import android.util.EventLog;
-import android.util.ExtendedPropertiesUtils;
 import android.util.Log;
 import android.util.Slog;
 import android.view.Display;
-import android.view.WindowManagerPolicy;
 import com.android.internal.app.ActivityTrigger;
 
 import java.io.IOException;
@@ -342,7 +338,7 @@ final class ActivityStack {
         }
     }
 
-    final Handler mHandler = new Handler() {
+    final Handler mHandler;
 
     final class ActivityStackHandler extends Handler {
         //public Handler() {
@@ -381,9 +377,9 @@ final class ActivityStack {
                 case IDLE_TIMEOUT_MSG: {
                     if (mService.mDidDexOpt) {
                         mService.mDidDexOpt = false;
-                        Message nmsg = obtainMessage(IDLE_TIMEOUT_MSG);
+                        Message nmsg = mHandler.obtainMessage(IDLE_TIMEOUT_MSG);
                         nmsg.obj = msg.obj;
-                        sendMessageDelayed(nmsg, IDLE_TIMEOUT);
+                        mHandler.sendMessageDelayed(nmsg, IDLE_TIMEOUT);
                         return;
                     }
                     // We don't at this point know if the activity is fullscreen,
@@ -415,7 +411,8 @@ final class ActivityStack {
                 case LAUNCH_TIMEOUT_MSG: {
                     if (mService.mDidDexOpt) {
                         mService.mDidDexOpt = false;
-                        sendEmptyMessageDelayed(LAUNCH_TIMEOUT_MSG, LAUNCH_TIMEOUT);
+                        Message nmsg = mHandler.obtainMessage(LAUNCH_TIMEOUT_MSG);
+                        mHandler.sendMessageDelayed(nmsg, LAUNCH_TIMEOUT);
                         return;
                     }
                     synchronized (mService) {
@@ -870,7 +867,8 @@ final class ActivityStack {
                 }
             }
             mHandler.removeMessages(SLEEP_TIMEOUT_MSG);
-            mHandler.sendEmptyMessageDelayed(SLEEP_TIMEOUT_MSG, SLEEP_TIMEOUT);
+            Message msg = mHandler.obtainMessage(SLEEP_TIMEOUT_MSG);
+            mHandler.sendMessageDelayed(msg, SLEEP_TIMEOUT);
             checkReadyForSleepLocked();
         }
     }
@@ -901,7 +899,7 @@ final class ActivityStack {
         }
 
         if (!mSleepTimeout) {
-            if (mResumedActivity != null) {
+            if (mResumedActivity != null && !next.floatingWindow) {
                 // Still have something resumed; can't sleep until it is paused.
                 if (DEBUG_PAUSE) Slog.v(TAG, "Sleep needs to pause " + mResumedActivity);
                 if (DEBUG_USER_LEAVING) Slog.v(TAG, "Sleep => pause with userLeaving=false");
@@ -960,13 +958,10 @@ final class ActivityStack {
         int w = mThumbnailWidth;
         int h = mThumbnailHeight;
         if (w < 0) {
-            int mAndroidDpi = ExtendedPropertiesUtils.getActualProperty("android.dpi");
             mThumbnailWidth = w =
-                    Math.round((float)res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_width) *  
-                            DisplayMetrics.DENSITY_DEVICE / mAndroidDpi);
+                res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_width);
             mThumbnailHeight = h =
-                    Math.round((float)res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_height) *  
-                            DisplayMetrics.DENSITY_DEVICE / mAndroidDpi);
+                res.getDimensionPixelSize(com.android.internal.R.dimen.thumbnail_height);
         }
 
         if (w > 0) {
@@ -1036,7 +1031,8 @@ final class ActivityStack {
             mLaunchingActivity.acquire();
             if (!mHandler.hasMessages(LAUNCH_TIMEOUT_MSG)) {
                 // To be safe, don't allow the wake lock to be held for too long.
-                mHandler.sendEmptyMessageDelayed(LAUNCH_TIMEOUT_MSG, LAUNCH_TIMEOUT);
+                Message msg = mHandler.obtainMessage(LAUNCH_TIMEOUT_MSG);
+                mHandler.sendMessageDelayed(msg, LAUNCH_TIMEOUT);
             }
         }
 
@@ -1461,7 +1457,7 @@ final class ActivityStack {
 
     final boolean resumeTopActivityLocked(ActivityRecord prev, Bundle options) {
 
-        mPm.cpuBoost(1550000);
+        mPm.cpuBoost(1500000);
 
         // Find the first activity that is not finishing.
         ActivityRecord next = topRunningActivityLocked(null);
@@ -1570,7 +1566,7 @@ final class ActivityStack {
         
         // We need to start pausing the current activity so the top one
         // can be resumed...
-        if (mResumedActivity != null && (pauseActiveAppWhenUsingHalo() || !next.floatingWindow)) {
+        if (mResumedActivity != null) {
             if (DEBUG_SWITCH) Slog.v(TAG, "Skip resume: need to start pausing");
             // At this point we want to put the upcoming activity's process
             // at the top of the LRU list, since we know we will be needing it
@@ -1961,7 +1957,7 @@ final class ActivityStack {
                         AppTransition.TRANSIT_NONE, keepCurTransition);
                 mNoAnimActivities.add(r);
             } else {
-                mService.mWindowManager.prepareAppTransition(newTask
+                mService.mWindowManager.prepareAppTransition(newTask && !r.floatingWindow
                         ? AppTransition.TRANSIT_TASK_OPEN
                         : AppTransition.TRANSIT_ACTIVITY_OPEN, keepCurTransition);
                 mNoAnimActivities.remove(r);
@@ -1983,7 +1979,7 @@ final class ActivityStack {
                     doShow = topRunningNonDelayedActivityLocked(null) == r;
                 }
             }
-            if (SHOW_APP_STARTING_PREVIEW && doShow && !r.floatingWindow) {
+            if (SHOW_APP_STARTING_PREVIEW && doShow) {
                 // Figure out if we are transitioning from another activity that is
                 // "has the same starting icon" as the next one.  This allows the
                 // window manager to keep the previous window it had previously
@@ -2552,7 +2548,7 @@ final class ActivityStack {
 
         int err = ActivityManager.START_SUCCESS;
 
-        mPm.cpuBoost(1550000);
+        mPm.cpuBoost(1500000);
 
         ProcessRecord callerApp = null;
 
@@ -2745,12 +2741,9 @@ final class ActivityStack {
         if ((launchFlags &
                 (Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_TASK_ON_HOME))
                 == (Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_TASK_ON_HOME)) {
-            boolean floating = (launchFlags&Intent.FLAG_FLOATING_WINDOW) == Intent.FLAG_FLOATING_WINDOW;
-            if (!floating) {
-                // Caller wants to appear on home activity, so before starting
-                // their own activity we will bring home to the front.
-                moveHomeToFrontLocked();
-            }
+            // Caller wants to appear on home activity, so before starting
+            // their own activity we will bring home to the front.
+            moveHomeToFrontLocked();
         }
     }
 
@@ -2813,8 +2806,7 @@ final class ActivityStack {
             launchFlags |= Intent.FLAG_ACTIVITY_NEW_TASK;
         }
 
-        if (r.resultTo != null && (launchFlags&Intent.FLAG_ACTIVITY_NEW_TASK) != 0 &&
-                (launchFlags&Intent.FLAG_FLOATING_WINDOW) == 0) {
+        if (r.resultTo != null && (launchFlags&Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
             // For whatever reason this activity is being launched into a new
             // task...  yet the caller has requested a result back.  Well, that
             // is pretty messed up, so instead immediately send back a cancel
@@ -3357,11 +3349,6 @@ final class ActivityStack {
         try {
             synchronized (mService) {
 
-                // we must resolve if the last intent in the stack is floating to give the flag to the previous
-                boolean floating = false;
-                if (intents.length > 0) {
-                    floating = (intents[intents.length - 1].getFlags()&Intent.FLAG_FLOATING_WINDOW) == Intent.FLAG_FLOATING_WINDOW;
-                }
                 for (int i=0; i<intents.length; i++) {
                     Intent intent = intents[i];
                     if (intent == null) {
@@ -3388,10 +3375,6 @@ final class ActivityStack {
                             & ApplicationInfo.FLAG_CANT_SAVE_STATE) != 0) {
                         throw new IllegalArgumentException(
                                 "FLAG_CANT_SAVE_STATE not supported here");
-                    }
-
-                    if (floating) {
-                        intent.addFlags(Intent.FLAG_FLOATING_WINDOW);
                     }
 
                     Bundle theseOptions;
@@ -3693,7 +3676,7 @@ final class ActivityStack {
 
         // Stop any activities that are scheduled to do so but have been
         // waiting for the next one to start.
-       for (i=0; i<NS; i++) {
+        for (i=0; i<NS; i++) {
             ActivityRecord r = (ActivityRecord)stops.get(i);
             synchronized (mService) {
                 if (r.finishing) {
@@ -3707,8 +3690,8 @@ final class ActivityStack {
         // Finish any activities that are scheduled to do so but have been
         // waiting for the next one to start.
         for (i=0; i<NF; i++) {
+            ActivityRecord r = (ActivityRecord)finishes.get(i);
             synchronized (mService) {
-                ActivityRecord r = (ActivityRecord)finishes.get(i);
                 activityRemoved = destroyActivityLocked(r, true, false, "finish-idle");
             }
         }
@@ -3902,7 +3885,7 @@ final class ActivityStack {
                     || (mHistory.get(index-1)).task != r.task;
             if (DEBUG_TRANSITION) Slog.v(TAG,
                     "Prepare close transition: finishing " + r);
-            mService.mWindowManager.prepareAppTransition(endTask
+            mService.mWindowManager.prepareAppTransition(endTask && !r.floatingWindow
                     ? AppTransition.TRANSIT_TASK_CLOSE
                     : AppTransition.TRANSIT_ACTIVITY_CLOSE, false);
     
@@ -4862,13 +4845,7 @@ final class ActivityStack {
 
         return true;
     }
-
-    private boolean pauseActiveAppWhenUsingHalo() {
-        int isLowRAM = (ActivityManager.isLargeRAM()) ? 0 : 1;
-        return Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.HALO_PAUSE, isLowRAM) == 1;
-    }
-
+    
     public void dismissKeyguardOnNextActivityLocked() {
         mDismissKeyguardOnNextActivity = true;
     }

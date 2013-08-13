@@ -218,7 +218,7 @@ public class VibratorService extends IVibratorService.Stub
                 != PackageManager.PERMISSION_GRANTED) {
             throw new SecurityException("Requires VIBRATE permission");
         }
-        verifyIncomingUid(uid);
+        int uid = Binder.getCallingUid();
         // We're running in the system server so we cannot crash. Check for a
         // timeout of 0 or negative. This will ensure that a vibration has
         // either a timeout of > 0 or a non-null pattern.
@@ -228,8 +228,6 @@ public class VibratorService extends IVibratorService.Stub
             // longer than milliseconds.
             return;
         }
-
-        Vibration vib = new Vibration(token, milliseconds, uid, packageName);
 
         final long ident = Binder.clearCallingIdentity();
         try {
@@ -260,7 +258,6 @@ public class VibratorService extends IVibratorService.Stub
                 != PackageManager.PERMISSION_GRANTED) {
             throw new SecurityException("Requires VIBRATE permission");
         }
-
         if (inQuietHours()) {
             return;
         }

@@ -203,17 +203,16 @@ class PackageSettingBase extends GrantedPermissions {
         return readUserState(userId).enabled;
     }
 
-<<<<<<< HEAD
     void setPrivacyGuard(boolean enabled, int userId) {
         modifyUserState(userId).privacyGuard = enabled;
     }
 
     boolean isPrivacyGuard(int userId) {
         return readUserState(userId).privacyGuard;
-=======
+    }
+
     String getLastDisabledAppCaller(int userId) {
         return readUserState(userId).lastDisableAppCaller;
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
     }
 
     void setInstalled(boolean inst, int userId) {
@@ -268,22 +267,15 @@ class PackageSettingBase extends GrantedPermissions {
     }
 
     void setUserState(int userId, int enabled, boolean installed, boolean stopped,
-<<<<<<< HEAD
-            boolean notLaunched, boolean privacyGuard, HashSet<String> enabledComponents,
-=======
-            boolean notLaunched, String lastDisableAppCaller, HashSet<String> enabledComponents,
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
+            boolean notLaunched, boolean privacyGuard, String lastDisableAppCaller, HashSet<String> enabledComponents,
             HashSet<String> disabledComponents) {
         PackageUserState state = modifyUserState(userId);
         state.enabled = enabled;
         state.installed = installed;
         state.stopped = stopped;
         state.notLaunched = notLaunched;
-<<<<<<< HEAD
         state.privacyGuard = privacyGuard;
-=======
         state.lastDisableAppCaller = lastDisableAppCaller;
->>>>>>> 8fafbc6692a52d1f1417693f24f6349b4de5afbd
         state.enabledComponents = enabledComponents;
         state.disabledComponents = disabledComponents;
     }

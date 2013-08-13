@@ -324,7 +324,7 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
         boolean searchActionAvailable =
                 ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
                 .getAssistIntent(mContext, false, UserHandle.USER_CURRENT) != null;
-        mCameraDisabled = cameraDisabledByAdmin || disabledBySimState || !cameraTargetPresent
+        mCameraDisabled = cameraDisabledByAdmin || disabledBySimState || !cameraPresent
                 || !currentUserSetup;
         mSearchDisabled = disabledBySimState || !searchActionAvailable || !searchTargetPresent
                 || !currentUserSetup;
@@ -332,13 +332,13 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     }
 
     public void updateResources() {
-        String storedVal = Settings.System.getStringForUser(mContext.getContentResolver(),
+        String storedTargets = Settings.System.getStringForUser(mContext.getContentResolver(),
                 Settings.System.LOCKSCREEN_TARGETS, UserHandle.USER_CURRENT);
-        if (storedVal == null) {
+        if (storedTargets == null) {
             // Update the search icon with drawable from the search .apk
             if (!mSearchDisabled) {
                 Intent intent = ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
-                        .getAssistIntent(mContext, UserHandle.USER_CURRENT);
+                        .getAssistIntent(mContext, false, UserHandle.USER_CURRENT);
                 if (intent != null) {
                     // XXX Hack. We need to substitute the icon here but haven't formalized
                     // the public API. The "_google" metadata will be going away, so
@@ -361,7 +361,7 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
             mGlowPadView.setEnableTarget(com.android.internal.R.drawable
                     .ic_action_assist_generic, !mSearchDisabled);
         } else {
-            mStoredTargets = storedVal.split("\\|");
+            mStoredTargets = storedTargets.split("\\|");
             mIsScreenLarge = isScreenLarge();
             ArrayList<TargetDrawable> storedDraw = new ArrayList<TargetDrawable>();
             final Resources res = getResources();

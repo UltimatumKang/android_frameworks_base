@@ -148,7 +148,7 @@ public class KeyguardWidgetPager extends PagedView implements PagedView.PageSwit
         if (newPage instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) newPage;
             if (vg.getChildAt(0) instanceof KeyguardStatusView) {
-                showingStatusWidget = true;
+                showingClock = true;
             } else if (vg.getChildAt(0) instanceof AppWidgetHostView) {
                 AppWidgetProviderInfo info =
                         ((AppWidgetHostView) vg.getChildAt(0)).getAppWidgetInfo();
